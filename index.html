@@ -2,141 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Live A4 Stock Update</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #f4f7fb;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
       margin: 0;
-      padding: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    header {
-      background-color: #1e88e5;
-      color: white;
-      padding: 20px 30px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    h1 {
+      color: #222;
+      margin-bottom: 1.5rem;
     }
 
     table {
-      width: 100%;
       border-collapse: collapse;
-    }
-
-    thead {
-      background-color: #f1f1f1;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 500px;
     }
 
     th, td {
-      padding: 15px;
+      padding: 1rem;
       text-align: left;
       border-bottom: 1px solid #eee;
     }
 
     th {
-      color: #444;
+      background-color: #007ACC;
+      color: white;
+      font-weight: 600;
     }
 
     td {
-      color: #222;
-      font-weight: 500;
+      font-size: 1.1rem;
     }
 
-    .footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 14px;
-      color: #888;
-    }
-
-    #countdown {
-      margin-top: 10px;
-      font-size: 14px;
+    #status {
+      margin-top: 1rem;
       color: #666;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-
-  <header>
-    📦 Live A4 Paper Stock Update
-  </header>
-
-  <div class="container">
-    <table>
-      <thead>
-        <tr>
-          <th>Brand</th>
-          <th>Stock (Boxes)</th>
-        </tr>
-      </thead>
-      <tbody id="stock-table-body">
-        <tr><td colspan="2">Loading...</td></tr>
-      </tbody>
-    </table>
-    <div id="countdown">Refreshing in 60 seconds...</div>
-  </div>
-
-  <div class="footer">
-    Updated live from Google Sheets
-  </div>
+  <h1>📦 Live A4 Stock Update</h1>
+  <table id="stock-table">
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>Qty (Boxes)</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr><td colspan="2">Loading...</td></tr>
+    </tbody>
+  </table>
+  <div id="status">Fetching latest data...</div>
 
   <script>
-    const sheetID = '1pqWzGcxhsQ_3ASLcIG-OFOajfFNaGpzHoipmG2t2iYE';
-    const sheetName = 'Stock';
-    const query = encodeURIComponent('SELECT A, B');
-    const url = https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}&tq=${query};
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv';
 
-    function fetchData() {
-      fetch(url)
-        .then(res => res.text())
-        .then(rep => {
-          const data = JSON.parse(rep.substr(47).slice(0, -2));
-          const table = document.getElementById("stock-table-body");
-          table.innerHTML = "";
+    async function loadCSV() {
+      try {
+        const response = await fetch(csvUrl);
+        const text = await response.text();
+        const lines = text.trim().split('\n');
+        const rows = lines.slice(1).map(line => line.split(','));
 
-          data.table.rows.forEach(row => {
-            const brand = row.c[0]?.v || 'N/A';
-            const qty = row.c[1]?.v ?? '0';
-            const tr = document.createElement("tr");
-            tr.innerHTML = <td>${brand}</td><td>${qty}</td>;
-            table.appendChild(tr);
-          });
-        })
-        .catch(err => {
-          document.getElementById("stock-table-body").innerHTML =
-            <tr><td colspan="2">Error loading data.</td></tr>;
-          console.error("Fetch error:", err);
+        const tableBody = document.getElementById('table-body');
+        tableBody.innerHTML = '';
+
+        rows.forEach(([brand, qty]) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${brand}</td><td>${qty}</td>`;
+          tableBody.appendChild(tr);
         });
+
+        document.getElementById('status').textContent = 'Last updated: ' + new Date().toLocaleString();
+      } catch (error) {
+        document.getElementById('table-body').innerHTML = '<tr><td colspan="2">Error loading data</td></tr>';
+        document.getElementById('status').textContent = 'Failed to fetch data.';
+        console.error('CSV Load Error:', error);
+      }
     }
 
-    // Initial fetch
-    fetchData();
-
-    // Countdown timer
-    let seconds = 60;
-    const countdownEl = document.getElementById("countdown");
-    setInterval(() => {
-      seconds--;
-      if (seconds <= 0) {
-        location.reload();
-      } else {
-        countdownEl.textContent = Refreshing in ${seconds} seconds...;
-      }
-    }, 1000);
+    loadCSV();
   </script>
-
 </body>
 </html>
