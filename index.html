@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Live A4 Stock Update</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #f9fafc;
+      background: #f4f7fb;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
@@ -27,7 +27,7 @@
       padding: 20px;
       background: white;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     table {
@@ -46,19 +46,25 @@
     }
 
     th {
-      color: #555;
+      color: #444;
     }
 
     td {
-      color: #333;
+      color: #222;
       font-weight: 500;
     }
 
     .footer {
       text-align: center;
-      padding: 20px;
+      padding: 15px;
       font-size: 14px;
       color: #888;
+    }
+
+    #countdown {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
     }
   </style>
 </head>
@@ -80,6 +86,7 @@
         <tr><td colspan="2">Loading...</td></tr>
       </tbody>
     </table>
+    <div id="countdown">Refreshing in 60 seconds...</div>
   </div>
 
   <div class="footer">
@@ -88,30 +95,46 @@
 
   <script>
     const sheetID = '1pqWzGcxhsQ_3ASLcIG-OFOajfFNaGpzHoipmG2t2iYE';
-    const sheetName = 'Sheet1'; // Change this if your sheet tab is renamed
+    const sheetName = 'Sheet1';
     const query = encodeURIComponent('SELECT A, B');
     const url = https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}&tq=${query};
 
-    fetch(url)
-      .then(res => res.text())
-      .then(rep => {
-        const data = JSON.parse(rep.substr(47).slice(0, -2));
-        const table = document.getElementById("stock-table-body");
-        table.innerHTML = "";
+    function fetchData() {
+      fetch(url)
+        .then(res => res.text())
+        .then(rep => {
+          const data = JSON.parse(rep.substr(47).slice(0, -2));
+          const table = document.getElementById("stock-table-body");
+          table.innerHTML = "";
 
-        data.table.rows.forEach(row => {
-          const brand = row.c[0]?.v || 'N/A';
-          const qty = row.c[1]?.v ?? '0';
-          const tr = document.createElement("tr");
-          tr.innerHTML = <td>${brand}</td><td>${qty}</td>;
-          table.appendChild(tr);
+          data.table.rows.forEach(row => {
+            const brand = row.c[0]?.v || 'N/A';
+            const qty = row.c[1]?.v ?? '0';
+            const tr = document.createElement("tr");
+            tr.innerHTML = <td>${brand}</td><td>${qty}</td>;
+            table.appendChild(tr);
+          });
+        })
+        .catch(err => {
+          document.getElementById("stock-table-body").innerHTML =
+            <tr><td colspan="2">Error loading data.</td></tr>;
+          console.error("Fetch error:", err);
         });
-      })
-      .catch(err => {
-        document.getElementById("stock-table-body").innerHTML =
-          <tr><td colspan="2">Error loading data.</td></tr>;
-        console.error("Fetch error:", err);
-      });
+    }
+
+    // Call it once immediately
+    fetchData();
+
+    // ⏱️ Countdown timer
+    let seconds = 60;
+    const countdownEl = document.getElementById("countdown");
+    setInterval(() => {
+      seconds--;
+      countdownEl.textContent = Refreshing in ${seconds} seconds...;
+    }, 1000);
+
+    // 🔁 Refresh the page every 60 seconds
+    setTimeout(() => location.reload(), 60000);
   </script>
 
 </body>
