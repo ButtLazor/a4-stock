@@ -3,132 +3,211 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live A4 Stock Update</title>
+  <title>Live A4 Paper Stock</title>
   <style>
+    :root {
+      --bg: #f4f6f8;
+      --text: #333;
+      --table-bg: #fff;
+      --thead-bg: #2c3e50;
+      --thead-text: white;
+      --alt-row: #f2f2f2;
+    }
+
+    body.dark {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --table-bg: #1e1e1e;
+      --thead-bg: #333;
+      --thead-text: #fff;
+      --alt-row: #2a2a2a;
+    }
+
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f4f6f8;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 60px 20px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
+      transition: background-color 0.3s, color 0.3s;
     }
 
     h1 {
-      color: #2c3e50;
-      margin-bottom: 1rem;
+      margin-bottom: 10px;
     }
 
-    table {
-      width: 100%;
-      max-width: 400px;
+    #stock-table {
+      margin-top: 20px;
       border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      background: var(--table-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
 
     th, td {
+      padding: 16px;
       text-align: left;
-      padding: 12px 16px;
-      border-bottom: 1px solid #ddd;
     }
 
     th {
-      background-color: #3498db;
-      color: white;
+      background-color: var(--thead-bg);
+      color: var(--thead-text);
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--alt-row);
+    }
+
+    .low {
+      color: orange;
+      font-weight: bold;
+    }
+
+    .very-low {
+      color: red;
+      font-weight: bold;
+    }
+
+    .out {
+      color: red;
+      font-weight: bold;
+    }
+
+    #lastUpdated {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .top-right, .top-left {
+      position: fixed;
+      top: 10px;
+      z-index: 100;
+    }
+
+    .top-right {
+      right: 10px;
+    }
+
+    .top-left {
+      left: 10px;
     }
 
     button {
-      margin: 1rem;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border: none;
-      background-color: #2ecc71;
+      font-size: 12px;
+      padding: 6px 10px;
+      background-color: #2c3e50;
       color: white;
+      border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     button:hover {
-      background-color: #27ae60;
-    }
-
-    #status {
-      margin-top: 1rem;
-      color: #888;
-      font-size: 0.9rem;
+      background-color: #1a252f;
     }
   </style>
 </head>
 <body>
+  <div class="top-left">
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  </div>
+  <div class="top-right">
+    <button onclick="enableSound()">Enable Sound</button>
+  </div>
 
-  <h1>📦 Live A4 Stock Update</h1>
-  <button id="enableSound">🔊 Enable Sound</button>
-  <table id="stockTable">
+  <h1>Live A4 Paper Stock</h1>
+
+  <table id="stock-table">
     <thead>
       <tr>
         <th>Brand</th>
-        <th>Qty (Boxes)</th>
+        <th>Qty (Box)</th>
       </tr>
     </thead>
-    <tbody id="stockBody">
-      <tr><td colspan="2">Loading…</td></tr>
+    <tbody id="stock-body">
+      <tr><td colspan="2" id="loading">Loading...</td></tr>
     </tbody>
   </table>
-  <div id="status">Checking for updates every 30 seconds…</div>
+
+  <div id="lastUpdated">Last updated: --</div>
+
+  <audio id="ding" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
-    const stockBody = document.getElementById("stockBody");
-    const enableBtn = document.getElementById("enableSound");
-    let previousStock = {};
-    let ding;
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
+    let previousData = {};
+    let soundEnabled = false;
 
-    enableBtn.addEventListener("click", () => {
-      ding = new Audio("https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav");
-      ding.play().catch(() => {});
-      enableBtn.disabled = true;
-      enableBtn.textContent = "🔈 Sound Enabled";
-    });
+    function enableSound() {
+      document.getElementById("ding").play().catch(() => {});
+      soundEnabled = true;
+      alert("Sound enabled. You will hear a ding when stock changes.");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
 
     async function fetchStock() {
       try {
-        const response = await fetch(sheetURL);
-        const data = await response.text();
-        const rows = data.trim().split("\n").slice(1); // Skip header
+        const res = await fetch(SHEET_URL);
+        const csv = await res.text();
+        const rows = csv.trim().split("\n").slice(1); // skip header
+
+        const tbody = document.getElementById("stock-body");
+        tbody.innerHTML = "";
+
         let changed = false;
 
-        stockBody.innerHTML = "";
-
         rows.forEach(row => {
-          const [brand, qty] = row.split(",");
-          const qtyNum = parseInt(qty);
+          const [brand, qtyRaw] = row.split(",").map(cell => cell.trim());
+          const qty = parseInt(qtyRaw, 10);
+          let displayQty = qtyRaw;
+          let className = "";
 
-          // Check for changes
-          if (previousStock[brand] !== undefined && previousStock[brand] !== qtyNum) {
+          if (!isNaN(qty)) {
+            if (qty === 0) {
+              displayQty = "OUT OF STOCK";
+              className = "out";
+            } else if (qty < 200) {
+              className = "very-low";
+            } else if (qty < 500) {
+              className = "low";
+            }
+          }
+
+          if (previousData[brand] !== undefined && previousData[brand] !== qty) {
             changed = true;
           }
 
-          previousStock[brand] = qtyNum;
+          previousData[brand] = qty;
 
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${brand}</td><td>${qtyNum}</td>`;
-          stockBody.appendChild(tr);
+          tr.innerHTML = `<td>${brand}</td><td class="${className}">${displayQty}</td>`;
+          tbody.appendChild(tr);
         });
 
-        if (changed && ding) {
-          ding.play().catch(() => {});
+        if (changed && soundEnabled) {
+          document.getElementById("ding").play().catch(() => {});
         }
 
+        document.getElementById("lastUpdated").textContent =
+          "Last updated: " + new Date().toLocaleTimeString();
       } catch (error) {
-        stockBody.innerHTML = `<tr><td colspan="2">Error loading data.</td></tr>`;
-        console.error("Error fetching stock:", error);
+        document.getElementById("stock-body").innerHTML = `<tr><td colspan="2">Error loading data.</td></tr>`;
+        console.error("Failed to fetch stock:", error);
       }
     }
 
-    fetchStock();
-    setInterval(fetchStock, 30000); // every 30 seconds
+    fetchStock(); // initial
+    setInterval(fetchStock, 10000); // every 10 seconds
   </script>
-
 </body>
 </html>
