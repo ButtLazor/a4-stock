@@ -91,6 +91,8 @@
     </tbody>
   </table>
 
+  <p id="lastUpdated" style="text-align:center; font-size: 0.9rem; color: #666;">Last updated: —</p>
+
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
@@ -160,6 +162,14 @@
     }
 
     fetchStock();
+    // After finishing table update
+const now = new Date();
+const formattedTime = now.toLocaleString('en-GB', {
+  day: 'numeric', month: 'short', year: 'numeric',
+  hour: '2-digit', minute: '2-digit', second: '2-digit'
+});
+document.getElementById("lastUpdated").textContent = `Last updated: ${formattedTime}`;
+
     setInterval(fetchStock, 10000);
   </script>
 </body>
