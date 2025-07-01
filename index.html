@@ -4,103 +4,67 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Live A4 Stock Update</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: Arial, sans-serif;
       margin: 0;
       background-color: #f4f4f4;
       color: #333;
-      transition: background-color 0.3s, color 0.3s;
     }
-
-    .dark-mode {
-      background-color: #1e1e1e;
-      color: #ddd;
-    }
-
     header {
       background-color: #006FA1;
       color: white;
-      padding: 1.2rem;
+      padding: 1rem;
       text-align: center;
     }
-
     .controls {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       padding: 0.5rem 1rem;
     }
-
     .controls button {
-      padding: 8px 14px;
+      padding: 6px 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       background-color: #006FA1;
       color: white;
       cursor: pointer;
-      font-size: 1.1rem;
-      transition: background-color 0.2s, color 0.2s;
+      font-size: 1rem;
+      transition: background 0.2s;
     }
-
     .controls button:hover {
       background-color: #FEA93D;
       color: #333;
     }
-
     .stock-table {
       width: 90%;
       margin: 1rem auto;
-      border-collapse: separate;
-      border-spacing: 0 10px;
+      border-collapse: collapse;
     }
-
     .stock-table th, .stock-table td {
-      background: white;
-      padding: 0.9rem 1rem;
+      border: 1px solid #ccc;
+      padding: 0.75rem;
       text-align: center;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0px 1px 3px rgba(0,0,0,0.1);
-      font-size: 1.05rem;
     }
-
-    .stock-table th {
-      background-color: #006FA1;
-      color: white;
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
     .low-stock {
       background-color: #FEA93D;
-      color: #333;
       font-weight: bold;
+      color: #333;
     }
-
     .critical-stock {
       background-color: #e74c3c;
-      color: white;
       font-weight: bold;
+      color: #fff;
     }
-
     .out-of-stock {
       background-color: #e74c3c;
-      color: white;
       font-weight: bold;
+      color: #fff;
     }
-
     .top-right {
       position: absolute;
       top: 10px;
       right: 10px;
-    }
-
-    .top-left {
-      position: absolute;
-      top: 10px;
-      left: 10px;
     }
   </style>
 </head>
@@ -110,7 +74,6 @@
   </header>
 
   <div class="controls">
-    <button class="top-left" onclick="toggleDarkMode()">🌙</button>
     <button class="top-right" onclick="enableSound()">🔔</button>
   </div>
 
@@ -136,10 +99,6 @@
       const sound = document.getElementById("dingSound");
       sound.play().catch(() => {});
       soundEnabled = true;
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
     }
 
     async function fetchStock() {
