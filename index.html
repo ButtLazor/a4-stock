@@ -3,216 +3,171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live A4 Paper Stock</title>
+  <title>Live A4 Stock Update</title>
   <style>
-    :root {
-      --bg: #f4f6f8;
-      --text: #333;
-      --table-bg: #fff;
-      --thead-bg: #007BFF;
-      --thead-text: white;
-      --alt-row: #f2f2f2;
-      --button-bg: #007BFF;
-      --button-text: white;
-      --button-hover: #0056b3;
-    }
-
-    body.dark {
-      --bg: #121212;
-      --text: #f0f0f0;
-      --table-bg: #1e1e1e;
-      --thead-bg: #0056b3;
-      --thead-text: #fff;
-      --alt-row: #2a2a2a;
-      --button-bg: #0056b3;
-      --button-hover: #003d80;
-    }
-
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 60px 20px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background-color: #f4f4f4;
+      color: #333;
       transition: background-color 0.3s, color 0.3s;
     }
-
-    h1 {
-      margin-bottom: 10px;
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #ddd;
     }
-
-    #stock-table {
-      margin-top: 20px;
+    header {
+      background-color: #006FA1;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+    }
+    .controls button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: #006FA1;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background-color: #FEA93D;
+      color: #333;
+    }
+    .stock-table {
+      width: 90%;
+      margin: 1rem auto;
       border-collapse: collapse;
-      width: 100%;
-      max-width: 500px;
-      background: var(--table-bg);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
-
-    th, td {
-      padding: 16px;
-      text-align: left;
+    .stock-table th, .stock-table td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: center;
     }
-
-    th {
-      background-color: var(--thead-bg);
-      color: var(--thead-text);
-    }
-
-    tr:nth-child(even) {
-      background-color: var(--alt-row);
-    }
-
-    .low {
-      color: orange;
+    .low-stock {
+      background-color: #FEA93D;
       font-weight: bold;
     }
-
-    .very-low {
-      color: red;
+    .critical-stock {
+      background-color: #e74c3c;
+      color: white;
       font-weight: bold;
     }
-
-    .out {
-      color: red;
+    .out-of-stock {
+      background-color: #e74c3c;
+      color: white;
       font-weight: bold;
     }
-
-    #lastUpdated {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      color: var(--text);
-    }
-
-    .top-right, .top-left {
-      position: fixed;
-      top: 10px;
-      z-index: 100;
-    }
-
     .top-right {
+      position: absolute;
+      top: 10px;
       right: 10px;
     }
-
     .top-left {
+      position: absolute;
+      top: 10px;
       left: 10px;
-    }
-
-    button {
-      font-size: 12px;
-      padding: 6px 10px;
-      background-color: var(--button-bg);
-      color: var(--button-text);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: var(--button-hover);
     }
   </style>
 </head>
 <body>
-  <div class="top-left">
-    <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
-  </div>
-  <div class="top-right">
-    <button onclick="enableSound()">🔊 Enable Sound</button>
+  <header>
+    <h1>📦 Live A4 Stock Update</h1>
+  </header>
+
+  <div class="controls">
+    <button class="top-left" onclick="toggleDarkMode()">🌙</button>
+    <button class="top-right" onclick="enableSound()">🔔</button>
   </div>
 
-  <h1>Live A4 Paper Stock</h1>
-
-  <table id="stock-table">
+  <table class="stock-table" id="stockTable">
     <thead>
       <tr>
         <th>Brand</th>
-        <th>Qty (Box)</th>
+        <th>Quantity (Box)</th>
       </tr>
     </thead>
-    <tbody id="stock-body">
-      <tr><td colspan="2" id="loading">Loading...</td></tr>
+    <tbody id="stockBody">
+      <tr><td colspan="2">Loading…</td></tr>
     </tbody>
   </table>
 
-  <div id="lastUpdated">Last updated: --</div>
-
-  <audio id="ding" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
+  <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
-    let previousData = {};
+    let lastData = [];
     let soundEnabled = false;
 
     function enableSound() {
-      document.getElementById("ding").play().catch(() => {});
+      const sound = document.getElementById("dingSound");
+      sound.play().catch(() => {});
       soundEnabled = true;
-      alert("Sound enabled. You will hear a ding when stock changes.");
     }
 
     function toggleDarkMode() {
-      document.body.classList.toggle("dark");
+      document.body.classList.toggle("dark-mode");
     }
 
     async function fetchStock() {
       try {
-        const res = await fetch(SHEET_URL);
-        const csv = await res.text();
-        const rows = csv.trim().split("\n").slice(1); // skip header
-
-        const tbody = document.getElementById("stock-body");
-        tbody.innerHTML = "";
+        const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv");
+        const text = await response.text();
+        const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
+        const table = document.getElementById("stockBody");
+        table.innerHTML = "";
 
         let changed = false;
 
-        rows.forEach(row => {
-          const [brand, qtyRaw] = row.split(",").map(cell => cell.trim());
-          const qty = parseInt(qtyRaw, 10);
-          let displayQty = qtyRaw;
-          let className = "";
+        rows.forEach((row, i) => {
+          const [brand, qtyStr] = row;
+          const qty = parseInt(qtyStr);
+          const tr = document.createElement("tr");
 
-          if (!isNaN(qty)) {
-            if (qty === 0) {
-              displayQty = "OUT OF STOCK";
-              className = "out";
-            } else if (qty < 200) {
-              className = "very-low";
-            } else if (qty < 500) {
-              className = "low";
-            }
+          const brandTd = document.createElement("td");
+          brandTd.textContent = brand;
+
+          const qtyTd = document.createElement("td");
+          if (qty === 0) {
+            qtyTd.textContent = "OUT OF STOCK";
+            qtyTd.className = "out-of-stock";
+          } else if (qty < 200) {
+            qtyTd.textContent = qty;
+            qtyTd.className = "critical-stock";
+          } else if (qty < 500) {
+            qtyTd.textContent = qty;
+            qtyTd.className = "low-stock";
+          } else {
+            qtyTd.textContent = qty;
           }
 
-          if (previousData[brand] !== undefined && previousData[brand] !== qty) {
+          tr.appendChild(brandTd);
+          tr.appendChild(qtyTd);
+          table.appendChild(tr);
+
+          if (lastData[i] !== qty) {
             changed = true;
           }
-
-          previousData[brand] = qty;
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${brand}</td><td class="${className}">${displayQty}</td>`;
-          tbody.appendChild(tr);
+          lastData[i] = qty;
         });
 
         if (changed && soundEnabled) {
-          document.getElementById("ding").play().catch(() => {});
+          document.getElementById("dingSound").play().catch(() => {});
         }
 
-        document.getElementById("lastUpdated").textContent =
-          "Last updated: " + new Date().toLocaleTimeString();
-      } catch (error) {
-        document.getElementById("stock-body").innerHTML = `<tr><td colspan="2">Error loading data.</td></tr>`;
-        console.error("Failed to fetch stock:", error);
+      } catch (e) {
+        console.error("Fetch failed", e);
       }
     }
 
-    fetchStock(); // initial
-    setInterval(fetchStock, 10000); // every 10 seconds
+    fetchStock();
+    setInterval(fetchStock, 10000);
   </script>
 </body>
 </html>
