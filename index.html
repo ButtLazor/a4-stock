@@ -2,123 +2,133 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Live A4 Stock Update</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Segoe UI", sans-serif;
       background-color: #f4f6f8;
-      margin: 0;
-      padding: 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 2rem;
     }
+
     h1 {
-      color: #222;
-      margin-bottom: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 1rem;
     }
+
     table {
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      border-radius: 8px;
-      overflow: hidden;
       width: 100%;
-      max-width: 500px;
+      max-width: 400px;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
+
     th, td {
-      padding: 1rem;
       text-align: left;
-      border-bottom: 1px solid #eee;
+      padding: 12px 16px;
+      border-bottom: 1px solid #ddd;
     }
+
     th {
-      background-color: #007ACC;
+      background-color: #3498db;
       color: white;
-      font-weight: 600;
     }
-    td {
-      font-size: 1.1rem;
+
+    button {
+      margin: 1rem;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      background-color: #2ecc71;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
     }
+
+    button:hover {
+      background-color: #27ae60;
+    }
+
     #status {
       margin-top: 1rem;
-      color: #666;
+      color: #888;
       font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
+
   <h1>📦 Live A4 Stock Update</h1>
-  <table id="stock-table">
+  <button id="enableSound">🔊 Enable Sound</button>
+  <table id="stockTable">
     <thead>
       <tr>
         <th>Brand</th>
         <th>Qty (Boxes)</th>
       </tr>
     </thead>
-    <tbody id="table-body">
-      <tr><td colspan="2">Loading...</td></tr>
+    <tbody id="stockBody">
+      <tr><td colspan="2">Loading…</td></tr>
     </tbody>
   </table>
-  <div id="status">Fetching latest data...</div>
-
-  <!-- Ding sound -->
-  <audio id="ding" src="https://raw.githubusercontent.com/YourUsername/YourRepo/main/sounds/ding.mp3" preload="auto"></audio>
+  <div id="status">Checking for updates every 30 seconds…</div>
 
   <script>
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv';
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
+    const stockBody = document.getElementById("stockBody");
+    const enableBtn = document.getElementById("enableSound");
     let previousStock = {};
+    let ding;
 
-    async function loadCSV() {
+    enableBtn.addEventListener("click", () => {
+      ding = new Audio("https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav");
+      ding.play().catch(() => {});
+      enableBtn.disabled = true;
+      enableBtn.textContent = "🔈 Sound Enabled";
+    });
+
+    async function fetchStock() {
       try {
-        const response = await fetch(csvUrl);
-        if (!response.ok) throw new Error('Failed to fetch CSV');
-        const text = await response.text();
-        const lines = text.trim().split('\n');
+        const response = await fetch(sheetURL);
+        const data = await response.text();
+        const rows = data.trim().split("\n").slice(1); // Skip header
+        let changed = false;
 
-        if (lines.length < 2) throw new Error('No data rows found');
+        stockBody.innerHTML = "";
 
-        const rows = lines.slice(1).map(line => line.split(','));
-        const tableBody = document.getElementById('table-body');
-        const ding = document.getElementById('ding');
-        let hasChanges = false;
-        const newStock = {};
+        rows.forEach(row => {
+          const [brand, qty] = row.split(",");
+          const qtyNum = parseInt(qty);
 
-        tableBody.innerHTML = '';
-
-        rows.forEach(([brand, qty]) => {
-          brand = brand.trim();
-          qty = qty.trim();
-
-          if (brand && qty) {
-            newStock[brand] = qty;
-
-            if (previousStock[brand] && previousStock[brand] !== qty) {
-              hasChanges = true;
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${brand}</td><td>${qty}</td>`;
-            tableBody.appendChild(tr);
+          // Check for changes
+          if (previousStock[brand] !== undefined && previousStock[brand] !== qtyNum) {
+            changed = true;
           }
+
+          previousStock[brand] = qtyNum;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${brand}</td><td>${qtyNum}</td>`;
+          stockBody.appendChild(tr);
         });
 
-        if (hasChanges) {
+        if (changed && ding) {
           ding.play().catch(() => {});
         }
 
-        previousStock = newStock;
-        document.getElementById('status').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
-
-      } catch (err) {
-        document.getElementById('table-body').innerHTML = `<tr><td colspan="2">Error: ${err.message}</td></tr>`;
-        document.getElementById('status').textContent = 'Could not load data.';
-        console.error(err);
+      } catch (error) {
+        stockBody.innerHTML = `<tr><td colspan="2">Error loading data.</td></tr>`;
+        console.error("Error fetching stock:", error);
       }
     }
 
-    loadCSV();
-    setInterval(loadCSV, 60000);
+    fetchStock();
+    setInterval(fetchStock, 30000); // every 30 seconds
   </script>
+
 </body>
 </html>
