@@ -53,12 +53,17 @@
       text-align: center;
     }
     .low-stock {
-      background-color: #FEA93D;
+      background-color: #FEA93D; /* orange */
       font-weight: bold;
       color: #333;
     }
     .critical-stock {
-      background-color: #e74c3c;
+      background-color: #e74c3c; /* red */
+      font-weight: bold;
+      color: #fff;
+    }
+    .healthy-stock {
+      background-color: #27ae60; /* green */
       font-weight: bold;
       color: #fff;
     }
@@ -66,12 +71,6 @@
       background-color: #e74c3c;
       font-weight: bold;
       color: #fff;
-    }
-    .error-message {
-      text-align: center;
-      color: #e74c3c;
-      font-weight: bold;
-      padding: 1rem;
     }
   </style>
 </head>
@@ -81,15 +80,15 @@
   </header>
 
   <div class="controls">
-    <button id="soundButton" aria-pressed="false" onclick="toggleSound()">🔔</button>
+    <button id="soundButton" onclick="toggleSound()">🔔</button>
     <button onclick="manualRefresh()">🔃</button>
   </div>
 
-  <table class="stock-table" id="stockTable" role="table" aria-label="A4 paper stock levels">
+  <table class="stock-table" id="stockTable">
     <thead>
       <tr>
-        <th scope="col">Brand</th>
-        <th scope="col">Quantity (Box)</th>
+        <th>Brand</th>
+        <th>Quantity (Box)</th>
       </tr>
     </thead>
     <tbody id="stockBody">
@@ -100,18 +99,14 @@
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-    // lastData stores quantities keyed by brand name
-    let lastData = {};
+    let lastData = [];
     let soundEnabled = false;
 
     function toggleSound() {
+      const sound = document.getElementById("dingSound");
+      sound.play().catch(() => {});
       soundEnabled = !soundEnabled;
-      const btn = document.getElementById("soundButton");
-      btn.classList.toggle("sound-on", soundEnabled);
-      btn.setAttribute("aria-pressed", soundEnabled);
-      if (soundEnabled) {
-        document.getElementById("dingSound").play().catch(() => {});
-      }
+      document.getElementById("soundButton").classList.toggle("sound-on", soundEnabled);
     }
 
     function manualRefresh() {
@@ -121,24 +116,16 @@
     async function fetchStock(isManual = false) {
       try {
         const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv");
-        if (!response.ok) throw new Error('Network response not ok');
         const text = await response.text();
-
         const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
         const table = document.getElementById("stockBody");
         table.innerHTML = "";
 
         let changed = false;
-        let currentBrands = new Set();
 
-        rows.forEach((row) => {
-          if (row.length < 2) return; // skip malformed rows
+        rows.forEach((row, i) => {
           const [brand, qtyStr] = row;
           const qty = parseInt(qtyStr);
-          if (isNaN(qty)) return; // skip invalid quantity
-
-          currentBrands.add(brand);
-
           const tr = document.createElement("tr");
 
           const brandTd = document.createElement("td");
@@ -151,39 +138,30 @@
           } else if (qty < 200) {
             qtyTd.textContent = qty;
             qtyTd.className = "critical-stock";
-          } else if (qty < 500) {
+          } else if (qty <= 700) {
             qtyTd.textContent = qty;
             qtyTd.className = "low-stock";
           } else {
             qtyTd.textContent = qty;
+            qtyTd.className = "healthy-stock";
           }
 
           tr.appendChild(brandTd);
           tr.appendChild(qtyTd);
           table.appendChild(tr);
 
-          // Detect changes per brand, including new brands
-          if (lastData[brand] !== qty) {
+          if (lastData[i] !== qty) {
             changed = true;
           }
-          lastData[brand] = qty;
+          lastData[i] = qty;
         });
-
-        // Remove any brands from lastData that are no longer present
-        for (const brand in lastData) {
-          if (!currentBrands.has(brand)) {
-            delete lastData[brand];
-            changed = true;
-          }
-        }
 
         if (changed && soundEnabled && !isManual) {
           document.getElementById("dingSound").play().catch(() => {});
         }
+
       } catch (e) {
         console.error("Fetch failed", e);
-        const table = document.getElementById("stockBody");
-        table.innerHTML = `<tr><td colspan="2" class="error-message">Failed to load stock data. Please try again later.</td></tr>`;
       }
     }
 
