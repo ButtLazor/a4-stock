@@ -62,27 +62,46 @@
   </table>
   <div id="status">Fetching latest data...</div>
 
+  <!-- Ding sound -->
+  <audio id="ding" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
   <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv';
+    let previousStock = {};
 
     async function loadCSV() {
       try {
         const response = await fetch(csvUrl);
         const text = await response.text();
         const lines = text.trim().split('\n');
-        // Remove header row
         const rows = lines.slice(1).map(line => line.split(','));
+
+        const updatedStock = {};
+        let hasChanges = false;
 
         const tableBody = document.getElementById('table-body');
         tableBody.innerHTML = '';
 
         rows.forEach(([brand, qty]) => {
+          updatedStock[brand] = qty;
+          const previousQty = previousStock[brand];
+
+          if (previousQty !== undefined && previousQty !== qty) {
+            hasChanges = true;
+          }
+
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${brand}</td><td>${qty}</td>`;
+          tr.innerHTML = <td>${brand}</td><td>${qty}</td>;
           tableBody.appendChild(tr);
         });
 
-        document.getElementById('status').textContent = 'Last updated: ' + new Date().toLocaleString();
+        if (hasChanges) {
+          document.getElementById('ding').play();
+        }
+
+        previousStock = updatedStock;
+
+        document.getElementById('status').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
       } catch (error) {
         document.getElementById('table-body').innerHTML = '<tr><td colspan="2">Error loading data</td></tr>';
         document.getElementById('status').textContent = 'Failed to fetch data.';
@@ -90,8 +109,8 @@
       }
     }
 
+    // Load once and then every 60 seconds
     loadCSV();
-
     setInterval(loadCSV, 60000);
   </script>
 </body>
