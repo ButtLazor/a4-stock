@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="refresh" content="30"> <!-- auto-refresh every 30 seconds -->
+  <meta http-equiv="refresh" content="30">
   <title>Live A4 Stock Update</title>
   <style>
     body {
@@ -20,8 +20,8 @@
     }
     .controls {
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
+      justify-content: center;
+      align-items: center;
       padding: 0.5rem 1rem;
     }
     .controls button {
@@ -62,20 +62,20 @@
       font-weight: bold;
       color: #fff;
     }
-    .out-of-stock {
-      background-color: #e74c3c;
-      font-weight: bold;
-      color: #fff;
-    }
     .high-stock {
       background-color: #2ecc71;
       font-weight: bold;
       color: #fff;
     }
-    #lastUpdated {
+    .out-of-stock {
+      background-color: #e74c3c;
+      font-weight: bold;
+      color: #fff;
+    }
+    .updated-time {
       text-align: center;
       font-size: 0.9rem;
-      color: #555;
+      color: #666;
       margin-bottom: 1rem;
     }
   </style>
@@ -87,8 +87,9 @@
 
   <div class="controls">
     <button id="soundButton" onclick="toggleSound()">🔔</button>
-    <button onclick="manualRefresh()">🔃</button>
   </div>
+
+  <div class="updated-time" id="updatedTime">Last updated: —</div>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -101,8 +102,6 @@
       <tr><td colspan="2">Loading…</td></tr>
     </tbody>
   </table>
-
-  <p id="lastUpdated">Last Updated: --</p>
 
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
@@ -117,13 +116,17 @@
       document.getElementById("soundButton").classList.toggle("sound-on", soundEnabled);
     }
 
-    function manualRefresh() {
-      fetchStock(true);
+    function getMaldivesTime() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const maldivesTime = new Date(utc + (5 * 60 + 0) * 60000); // UTC+5
+      return maldivesTime.toLocaleString('en-GB', { hour12: false });
     }
 
-    async function fetchStock(isManual = false) {
+    async function fetchStock() {
       try {
-        const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=" + Date.now());
+        const timestamp = new Date().getTime();
+        const response = await fetch(`https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${timestamp}`);
         const text = await response.text();
         const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
         const table = document.getElementById("stockBody");
@@ -164,23 +167,18 @@
           lastData[i] = qty;
         });
 
-        if (changed && soundEnabled && !isManual) {
+        if (changed && soundEnabled) {
           document.getElementById("dingSound").play().catch(() => {});
         }
 
-        // Update "Last Updated" in Maldives time
-        const now = new Date();
-        const maldivesTime = new Date(now.toLocaleString("en-US", { timeZone: "Indian/Maldives" }));
-        document.getElementById("lastUpdated").textContent =
-          "Last Updated: " + maldivesTime.toLocaleString();
-
+        document.getElementById("updatedTime").textContent = "Last updated: " + getMaldivesTime();
       } catch (e) {
         console.error("Fetch failed", e);
       }
     }
 
     fetchStock();
-    setInterval(fetchStock, 10000);
+    setInterval(fetchStock, 5000); // every 5 seconds
   </script>
 </body>
 </html>
