@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live A4 Stock Update</title>
+  <title>📦 Live A4 Stock Update</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,38 +17,24 @@
       padding: 1rem;
       text-align: center;
     }
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 1rem;
-    }
-    .controls button {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 5px;
-      background-color: #006FA1;
-      color: white;
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: background 0.2s;
-    }
-    .controls button.active {
-      background-color: #FEA93D;
-      color: #333;
+    .top-right {
+      position: absolute;
+      top: 10px;
+      right: 10px;
     }
     .stock-table {
       width: 90%;
       margin: 1rem auto;
       border-collapse: collapse;
+      font-size: 1.8rem;
     }
     .stock-table th, .stock-table td {
       border: 1px solid #ccc;
       padding: 1rem;
       text-align: center;
-      font-size: 1.5rem;
     }
     .high-stock {
-      background-color: #28a745;
+      background-color: #4CAF50;
       color: white;
       font-weight: bold;
     }
@@ -67,16 +53,24 @@
       color: white;
       font-weight: bold;
     }
-    .top-right {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-    }
     #lastUpdated {
       text-align: center;
-      font-size: 0.9rem;
-      color: #555;
+      font-size: 1rem;
       margin-bottom: 1rem;
+    }
+    .sound-button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: #006FA1;
+      color: white;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    .sound-button.active {
+      background-color: #FEA93D;
+      color: #333;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -85,10 +79,7 @@
     <h1>📦 Live A4 Stock Update</h1>
   </header>
 
-  <div class="controls">
-    <div></div>
-    <button id="soundBtn" class="top-right" onclick="enableSound()">🔔</button>
-  </div>
+  <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
 
   <div id="lastUpdated">Last updated: --</div>
 
@@ -107,80 +98,88 @@
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-    let lastData = [];
-    let prevData = [];
     let soundEnabled = false;
+    let lastStableData = [];
 
     function enableSound() {
+      soundEnabled = !soundEnabled;
       const sound = document.getElementById("dingSound");
-      sound.play().catch(() => {});
-      soundEnabled = true;
-      document.getElementById("soundBtn").classList.add("active");
+      const btn = document.getElementById("soundToggle");
+      btn.classList.toggle("active");
+      if (soundEnabled) {
+        sound.play().catch(() => {});
+      }
     }
 
-    function getClassForQty(qty) {
-      if (qty === 0) return "out-of-stock";
-      if (qty < 200) return "low-stock";
-      if (qty <= 700) return "medium-stock";
-      return "high-stock";
+    async function fetchCSVData() {
+      const bust = Date.now();
+      const url = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      return text.trim().split("\n").slice(1).map(r => r.split(","));
     }
 
     function updateTable(data) {
       const table = document.getElementById("stockBody");
       table.innerHTML = "";
-
-      data.forEach(([brand, qty]) => {
+      data.forEach(([brand, qtyStr]) => {
+        const qty = parseInt(qtyStr);
         const tr = document.createElement("tr");
-        const brandTd = document.createElement("td");
-        const qtyTd = document.createElement("td");
 
+        const brandTd = document.createElement("td");
         brandTd.textContent = brand;
+        brandTd.style.fontSize = "1.6rem";
+
+        const qtyTd = document.createElement("td");
+        qtyTd.style.fontSize = "1.6rem";
+
         if (qty === 0) {
           qtyTd.textContent = "OUT OF STOCK";
+          qtyTd.className = "out-of-stock";
+        } else if (qty < 200) {
+          qtyTd.textContent = qty;
+          qtyTd.className = "low-stock";
+        } else if (qty <= 700) {
+          qtyTd.textContent = qty;
+          qtyTd.className = "medium-stock";
         } else {
           qtyTd.textContent = qty;
+          qtyTd.className = "high-stock";
         }
-
-        qtyTd.className = getClassForQty(qty);
 
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
         table.appendChild(tr);
       });
 
-      document.getElementById("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString();
-
-      if (soundEnabled) {
-        document.getElementById("dingSound").play().catch(() => {});
-      }
+      const now = new Date();
+      document.getElementById("lastUpdated").textContent =
+        "Last updated: " + now.toLocaleTimeString();
     }
 
-    async function fetchStock() {
-      try {
-        const response = await fetch(
-          "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&cb=" + Date.now()
-        );
-        const text = await response.text();
-        const rows = text.trim().split("\n").slice(1).map(r => {
-          const [brand, qtyStr] = r.split(",");
-          return [brand, parseInt(qtyStr)];
-        });
+    function isSameData(a, b) {
+      if (a.length !== b.length) return false;
+      return a.every((row, i) => row[1] === b[i][1]);
+    }
 
-        if (JSON.stringify(rows) === JSON.stringify(prevData)) {
-          if (JSON.stringify(rows) !== JSON.stringify(lastData)) {
-            lastData = rows;
-            updateTable(rows);
+    async function fetchStableData() {
+      const first = await fetchCSVData();
+      await new Promise(r => setTimeout(r, 3000));
+      const second = await fetchCSVData();
+
+      if (isSameData(first, second)) {
+        if (!isSameData(lastStableData, second)) {
+          if (soundEnabled) {
+            document.getElementById("dingSound").play().catch(() => {});
           }
+          updateTable(second);
+          lastStableData = second;
         }
-
-        prevData = rows;
-      } catch (e) {
-        console.error("Fetch failed", e);
       }
     }
 
-    fetchStock();
-    setInterval(fetchStock, 15000);
+    fetchStableData();
+    setInterval(fetchStableData, 6000);
   </script>
 </body>
 </html>
