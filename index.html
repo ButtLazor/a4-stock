@@ -19,7 +19,7 @@
     }
     .controls {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       padding: 0.5rem 1rem;
     }
     .controls button {
@@ -31,7 +31,6 @@
       cursor: pointer;
       font-size: 1.2rem;
       transition: background 0.2s;
-      margin-left: 0.5rem;
     }
     .controls button.active {
       background-color: #FEA93D;
@@ -48,29 +47,36 @@
       text-align: center;
       font-size: 1.5rem;
     }
-    .stock-table td.qty {
-      font-weight: bold;
-      color: white;
-    }
     .high-stock {
-      background-color: #28a745; /* Green */
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
     }
     .medium-stock {
-      background-color: #FEA93D; /* Orange */
+      background-color: #FEA93D;
+      color: white;
+      font-weight: bold;
     }
     .low-stock {
-      background-color: #e74c3c; /* Red */
+      background-color: #e74c3c;
+      color: white;
+      font-weight: bold;
     }
     .out-of-stock {
       background-color: #e74c3c;
-      font-weight: bold;
       color: white;
+      font-weight: bold;
     }
-    .last-updated {
+    .top-right {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    #lastUpdated {
       text-align: center;
-      margin-bottom: 1rem;
       font-size: 0.9rem;
-      color: #666;
+      color: #555;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -80,10 +86,11 @@
   </header>
 
   <div class="controls">
-    <button id="soundBtn" onclick="toggleSound()">🔔</button>
+    <div></div>
+    <button id="soundBtn" class="top-right" onclick="enableSound()">🔔</button>
   </div>
 
-  <div class="last-updated" id="lastUpdated">Last updated: --</div>
+  <div id="lastUpdated">Last updated: --</div>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -100,89 +107,80 @@
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
+    let lastData = [];
+    let prevData = [];
     let soundEnabled = false;
-    let lastStableData = [];
-    let lastFetchedData = [];
 
-    const soundBtn = document.getElementById("soundBtn");
-    const lastUpdatedDiv = document.getElementById("lastUpdated");
+    function enableSound() {
+      const sound = document.getElementById("dingSound");
+      sound.play().catch(() => {});
+      soundEnabled = true;
+      document.getElementById("soundBtn").classList.add("active");
+    }
 
-    function toggleSound() {
-      soundEnabled = !soundEnabled;
-      if (soundEnabled) {
-        document.getElementById("dingSound").play().catch(() => {});
-        soundBtn.classList.add("active");
-      } else {
-        soundBtn.classList.remove("active");
-      }
+    function getClassForQty(qty) {
+      if (qty === 0) return "out-of-stock";
+      if (qty < 200) return "low-stock";
+      if (qty <= 700) return "medium-stock";
+      return "high-stock";
     }
 
     function updateTable(data) {
       const table = document.getElementById("stockBody");
       table.innerHTML = "";
 
-      data.forEach(([brand, qtyStr]) => {
-        const qty = parseInt(qtyStr);
+      data.forEach(([brand, qty]) => {
         const tr = document.createElement("tr");
-
         const brandTd = document.createElement("td");
-        brandTd.textContent = brand;
-        brandTd.style.fontWeight = "bold";
-
         const qtyTd = document.createElement("td");
-        qtyTd.classList.add("qty");
 
+        brandTd.textContent = brand;
         if (qty === 0) {
           qtyTd.textContent = "OUT OF STOCK";
-          qtyTd.classList.add("out-of-stock");
-        } else if (qty < 200) {
-          qtyTd.textContent = qty;
-          qtyTd.classList.add("low-stock");
-        } else if (qty <= 700) {
-          qtyTd.textContent = qty;
-          qtyTd.classList.add("medium-stock");
         } else {
           qtyTd.textContent = qty;
-          qtyTd.classList.add("high-stock");
         }
+
+        qtyTd.className = getClassForQty(qty);
 
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
         table.appendChild(tr);
       });
 
-      const now = new Date();
-      lastUpdatedDiv.textContent = "Last updated: " + now.toLocaleString();
+      document.getElementById("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+
+      if (soundEnabled) {
+        document.getElementById("dingSound").play().catch(() => {});
+      }
     }
 
     async function fetchStock() {
       try {
-        const bust = Math.random().toString(36).substring(2);
         const response = await fetch(
-          "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&cb=" + bust
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&cb=" + Date.now()
         );
         const text = await response.text();
-        const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
+        const rows = text.trim().split("\n").slice(1).map(r => {
+          const [brand, qtyStr] = r.split(",");
+          return [brand, parseInt(qtyStr)];
+        });
 
-        // Compare with last fetch to confirm stability
-        if (JSON.stringify(rows) === JSON.stringify(lastFetchedData)) {
-          if (JSON.stringify(rows) !== JSON.stringify(lastStableData)) {
+        if (JSON.stringify(rows) === JSON.stringify(prevData)) {
+          if (JSON.stringify(rows) !== JSON.stringify(lastData)) {
+            lastData = rows;
             updateTable(rows);
-            if (soundEnabled) {
-              document.getElementById("dingSound").play().catch(() => {});
-            }
-            lastStableData = rows;
           }
         }
-        lastFetchedData = rows;
 
+        prevData = rows;
       } catch (e) {
-        console.error("Fetch error:", e);
+        console.error("Fetch failed", e);
       }
     }
 
     fetchStock();
-    setInterval(fetchStock, 30000); // Every 30 seconds
+    setInterval(fetchStock, 15000);
   </script>
 </body>
 </html>
