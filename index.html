@@ -49,17 +49,15 @@
     }
     .high-stock {
       background-color: #28a745;
-      color: white;
-      font-weight: bold;
     }
     .medium-stock {
       background-color: #fd7e14;
-      color: white;
-      font-weight: bold;
     }
     .low-stock, .out-of-stock {
       background-color: #dc3545;
-      color: white;
+    }
+    .qty {
+      color: white !important;
       font-weight: bold;
     }
     .last-updated {
@@ -111,64 +109,74 @@
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
-    async function fetchStock() {
-      try {
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
-        const response = await fetch(url);
-        const text = await response.text();
-        const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
-        const table = document.getElementById("stockBody");
-        const updated = document.getElementById("lastUpdated");
-        table.innerHTML = "";
-
-        let changed = false;
-
-        rows.forEach((row, i) => {
-          const [brand, qtyStr] = row;
-          const qty = parseInt(qtyStr);
-          const tr = document.createElement("tr");
-
-          const brandTd = document.createElement("td");
-          brandTd.textContent = brand;
-
-          const qtyTd = document.createElement("td");
-          if (qty === 0) {
-            qtyTd.textContent = "OUT OF STOCK";
-            qtyTd.className = "out-of-stock";
-          } else if (qty < 200) {
-            qtyTd.textContent = qty;
-            qtyTd.className = "low-stock";
-          } else if (qty <= 700) {
-            qtyTd.textContent = qty;
-            qtyTd.className = "medium-stock";
-          } else {
-            qtyTd.textContent = qty;
-            qtyTd.className = "high-stock";
-          }
-
-          tr.appendChild(brandTd);
-          tr.appendChild(qtyTd);
-          table.appendChild(tr);
-
-          if (lastData[i] !== qty) {
-            changed = true;
-          }
-          lastData[i] = qty;
-        });
-
-        if (changed && soundEnabled) {
-          document.getElementById("dingSound").play().catch(() => {});
-        }
-
-        updated.textContent = "Last updated: " + formatTime(new Date());
-
-      } catch (e) {
-        console.error("Fetch failed", e);
-      }
+    async function fetchCSV() {
+      const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
+      const response = await fetch(url + `&cacheBust=${Date.now()}`);
+      const text = await response.text();
+      return text.trim().split("\n").slice(1).map(r => r.split(","));
     }
 
-    fetchStock();
-    setInterval(fetchStock, 10000);
+    function updateTable(rows) {
+      const table = document.getElementById("stockBody");
+      const updated = document.getElementById("lastUpdated");
+      table.innerHTML = "";
+
+      let changed = false;
+
+      rows.forEach((row, i) => {
+        const [brand, qtyStr] = row;
+        const qty = parseInt(qtyStr);
+        const tr = document.createElement("tr");
+
+        const brandTd = document.createElement("td");
+        brandTd.textContent = brand;
+
+        const qtyTd = document.createElement("td");
+        qtyTd.classList.add("qty");
+
+        if (qty === 0) {
+          qtyTd.textContent = "OUT OF STOCK";
+          qtyTd.classList.add("out-of-stock");
+        } else if (qty < 200) {
+          qtyTd.textContent = qty;
+          qtyTd.classList.add("low-stock");
+        } else if (qty <= 700) {
+          qtyTd.textContent = qty;
+          qtyTd.classList.add("medium-stock");
+        } else {
+          qtyTd.textContent = qty;
+          qtyTd.classList.add("high-stock");
+        }
+
+        tr.appendChild(brandTd);
+        tr.appendChild(qtyTd);
+        table.appendChild(tr);
+
+        if (lastData[i] !== qty) {
+          changed = true;
+        }
+        lastData[i] = qty;
+      });
+
+      if (changed && soundEnabled) {
+        document.getElementById("dingSound").play().catch(() => {});
+      }
+
+      updated.textContent = "Last updated: " + formatTime(new Date());
+    }
+
+    async function fetchAndSettle() {
+      // First fetch (ignored)
+      await fetchCSV();
+      // Wait 2 seconds before second fetch
+      setTimeout(async () => {
+        const data = await fetchCSV();
+        updateTable(data);
+      }, 2000);
+    }
+
+    fetchAndSettle();
+    setInterval(fetchAndSettle, 10000);
   </script>
 </body>
 </html>
