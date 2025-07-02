@@ -66,6 +66,9 @@
       color: #666;
       margin-bottom: 1rem;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -79,7 +82,7 @@
 
   <div class="last-updated" id="lastUpdated">Last updated: --</div>
 
-  <table class="stock-table" id="stockTable">
+  <table class="stock-table hidden" id="stockTable">
     <thead>
       <tr>
         <th>Brand</th>
@@ -94,7 +97,7 @@
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-    let lastData = [];
+    let lastStableData = [];
     let soundEnabled = false;
 
     function enableSound() {
@@ -116,10 +119,21 @@
       return text.trim().split("\n").slice(1).map(r => r.split(","));
     }
 
+    function arraysEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i][1] !== b[i][1]) return false;
+      }
+      return true;
+    }
+
     function updateTable(rows) {
-      const table = document.getElementById("stockBody");
+      const table = document.getElementById("stockTable");
+      const body = document.getElementById("stockBody");
       const updated = document.getElementById("lastUpdated");
-      table.innerHTML = "";
+
+      table.classList.remove("hidden");
+      body.innerHTML = "";
 
       let changed = false;
 
@@ -150,33 +164,40 @@
 
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
-        table.appendChild(tr);
+        body.appendChild(tr);
 
-        if (lastData[i] !== qty) {
+        if (lastStableData[i] && lastStableData[i][1] !== qtyStr) {
           changed = true;
         }
-        lastData[i] = qty;
       });
 
       if (changed && soundEnabled) {
         document.getElementById("dingSound").play().catch(() => {});
       }
 
+      lastStableData = rows;
       updated.textContent = "Last updated: " + formatTime(new Date());
     }
 
-    async function fetchAndSettle() {
-      // First fetch (ignored)
-      await fetchCSV();
-      // Wait 2 seconds before second fetch
-      setTimeout(async () => {
-        const data = await fetchCSV();
-        updateTable(data);
-      }, 2000);
+    async function waitForStableData() {
+      let previous = [];
+      let current = [];
+
+      const check = async () => {
+        current = await fetchCSV();
+        if (arraysEqual(previous, current)) {
+          updateTable(current);
+        } else {
+          previous = current;
+          setTimeout(check, 500);
+        }
+      };
+
+      check();
     }
 
-    fetchAndSettle();
-    setInterval(fetchAndSettle, 10000);
+    waitForStableData();
+    setInterval(waitForStableData, 10000);
   </script>
 </body>
 </html>
