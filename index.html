@@ -19,26 +19,22 @@
     }
     .controls {
       display: flex;
-      justify-content: end;
+      justify-content: flex-end;
       padding: 0.5rem 1rem;
     }
     .controls button {
-      padding: 6px 12px;
+      padding: 6px 10px;
       border: none;
       border-radius: 5px;
       background-color: #006FA1;
       color: white;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.2s;
+      font-size: 1.1rem;
+      margin-left: 10px;
     }
-    .controls button:hover {
+    .controls button.active {
       background-color: #FEA93D;
       color: #333;
-    }
-    .active-sound {
-      background-color: #FEA93D !important;
-      color: #333 !important;
     }
     .stock-table {
       width: 90%;
@@ -49,23 +45,24 @@
       border: 1px solid #ccc;
       padding: 0.75rem;
       text-align: center;
-      color: #333;
+      font-size: 1rem;
     }
     .high-stock {
-      background-color: #2ecc71;
+      background-color: #28a745;
       color: white;
       font-weight: bold;
     }
     .medium-stock {
-      background-color: #FEA93D;
-      font-weight: bold;
-    }
-    .low-stock {
-      background-color: #e74c3c;
+      background-color: #fd7e14;
       color: white;
       font-weight: bold;
     }
-    #lastUpdated {
+    .low-stock, .out-of-stock {
+      background-color: #dc3545;
+      color: white;
+      font-weight: bold;
+    }
+    .last-updated {
       text-align: center;
       font-size: 0.9rem;
       color: #666;
@@ -79,8 +76,10 @@
   </header>
 
   <div class="controls">
-    <button id="soundBtn" onclick="enableSound()">🔔 Sound</button>
+    <button id="soundBtn" onclick="enableSound()">🔔</button>
   </div>
+
+  <div class="last-updated" id="lastUpdated">Last updated: --</div>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -94,8 +93,6 @@
     </tbody>
   </table>
 
-  <p id="lastUpdated">Last updated: —</p>
-
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
@@ -104,20 +101,24 @@
 
     function enableSound() {
       const sound = document.getElementById("dingSound");
+      const btn = document.getElementById("soundBtn");
       sound.play().catch(() => {});
       soundEnabled = true;
-      document.getElementById("soundBtn").classList.add("active-sound");
+      btn.classList.add("active");
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     async function fetchStock() {
       try {
-        const cacheBuster = `&_=${new Date().getTime()}`;
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv" + cacheBuster;
-
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv";
         const response = await fetch(url);
         const text = await response.text();
         const rows = text.trim().split("\n").slice(1).map(r => r.split(","));
         const table = document.getElementById("stockBody");
+        const updated = document.getElementById("lastUpdated");
         table.innerHTML = "";
 
         let changed = false;
@@ -131,9 +132,9 @@
           brandTd.textContent = brand;
 
           const qtyTd = document.createElement("td");
-          if (qty <= 0) {
+          if (qty === 0) {
             qtyTd.textContent = "OUT OF STOCK";
-            qtyTd.className = "low-stock";
+            qtyTd.className = "out-of-stock";
           } else if (qty < 200) {
             qtyTd.textContent = qty;
             qtyTd.className = "low-stock";
@@ -159,12 +160,7 @@
           document.getElementById("dingSound").play().catch(() => {});
         }
 
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-          day: 'numeric', month: 'short', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-        });
-        document.getElementById("lastUpdated").textContent = `Last updated: ${formattedTime}`;
+        updated.textContent = "Last updated: " + formatTime(new Date());
 
       } catch (e) {
         console.error("Fetch failed", e);
