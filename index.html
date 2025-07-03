@@ -63,6 +63,8 @@
       font-size: 0.9rem;
       color: #555;
       margin-bottom: 1rem;
+      white-space: pre;
+      min-height: 1.2em;
     }
     .sound-button {
       padding: 6px 12px;
@@ -78,6 +80,28 @@
       color: #333;
       font-weight: bold;
     }
+
+    /* Bounce animation for sound button */
+    @keyframes bounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.2); }
+      50%  { transform: scale(0.95); }
+      70%  { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .sound-button.bounce {
+      animation: bounce 0.4s ease;
+    }
+
+    /* Pulse glow for updated quantity */
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 0px rgba(254,169,61, 0.8); }
+      50% { box-shadow: 0 0 10px rgba(254,169,61, 1); }
+      100% { box-shadow: 0 0 0px rgba(254,169,61, 0.8); }
+    }
+    .pulse-glow {
+      animation: glowPulse 1s ease;
+    }
   </style>
 </head>
 <body>
@@ -85,7 +109,7 @@
     <h1>📦 Live Paper Stock Update (VMG)</h1>
   </header>
 
-  <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
+  <button class="sound-button top-right" id="soundToggle" onclick="toggleSound(this)">🔔</button>
 
   <div id="lastUpdated">Last updated: --</div>
   <div id="status">Checking for stable stock…</div>
@@ -108,10 +132,13 @@
     let soundEnabled = false;
     let lastStableData = [];
 
-    function enableSound() {
+    function toggleSound(btn) {
       soundEnabled = !soundEnabled;
-      const btn = document.getElementById("soundToggle");
       btn.classList.toggle("active");
+      btn.classList.remove("bounce");
+      void btn.offsetWidth; // Restart animation
+      btn.classList.add("bounce");
+
       if (soundEnabled) {
         document.getElementById("dingSound").play().catch(() => {});
       }
@@ -125,10 +152,21 @@
       return text.trim().split("\n").slice(1).map(r => r.split(","));
     }
 
+    function typeWriterEffect(text, elementId) {
+      const el = document.getElementById(elementId);
+      let i = 0;
+      el.textContent = "";
+      const interval = setInterval(() => {
+        el.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 30);
+    }
+
     function updateTable(data) {
       const table = document.getElementById("stockBody");
       table.innerHTML = "";
-      data.forEach(([brand, qtyStr]) => {
+      data.forEach(([brand, qtyStr], i) => {
         const qty = parseInt(qtyStr);
         const tr = document.createElement("tr");
 
@@ -153,6 +191,11 @@
           qtyTd.className = "high-stock";
         }
 
+        // Add pulse glow on update
+        qtyTd.classList.remove("pulse-glow");
+        void qtyTd.offsetWidth;
+        qtyTd.classList.add("pulse-glow");
+
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
         table.appendChild(tr);
@@ -168,9 +211,9 @@
     }
 
     async function fetchStableData() {
-      document.getElementById("status").textContent = "Checking for stable stock…";
-      const samples = [];
+      typeWriterEffect("Checking for stable stock…", "status");
 
+      const samples = [];
       for (let i = 0; i < 3; i++) {
         const data = await fetchCSVData();
         samples.push(data);
@@ -182,12 +225,13 @@
       if (allSame && !isSameData(lastStableData, samples[0])) {
         lastStableData = samples[0];
         updateTable(samples[0]);
-        document.getElementById("status").textContent = "✅ Stable stock displayed.";
+        typeWriterEffect("✅ Stable stock displayed.", "status");
+
         if (soundEnabled) {
           document.getElementById("dingSound").play().catch(() => {});
         }
       } else {
-        document.getElementById("status").textContent = "⚠️ Stock still changing…";
+        typeWriterEffect("⚠️ Stock still changing…", "status");
       }
     }
 
