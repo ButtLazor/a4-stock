@@ -61,43 +61,32 @@
       color: white;
       cursor: pointer;
       font-size: 1.2rem;
+      transition: transform 0.3s;
     }
     .sound-button.active {
       background-color: #FEA93D;
       color: #333;
       font-weight: bold;
+      animation: bounce 0.5s;
     }
     @keyframes bounce {
       0%   { transform: scale(1); }
-      30%  { transform: scale(1.2); }
-      50%  { transform: scale(0.95); }
-      70%  { transform: scale(1.05); }
+      30%  { transform: scale(1.3); }
+      60%  { transform: scale(0.9); }
       100% { transform: scale(1); }
     }
-    .sound-button.bounce {
-      animation: bounce 0.4s ease;
-    }
-
-    /* Flash animation for quantity change */
-    @keyframes flashQty {
-      0%, 100% { background-color: inherit; }
-      25% { background-color: #FFD700; color: #000; }
-      50% { background-color: #FFEB3B; color: #000; }
-      75% { background-color: #FFD700; color: #000; }
+    @keyframes flash {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.2; }
     }
     .flash-qty {
-      animation: flashQty 1.2s ease 1;
+      animation: flash 0.4s ease-in-out 2;
     }
-
-    .status-wrapper {
+    #info-section {
       text-align: center;
       font-size: 1rem;
-      margin: 0.5rem 0 1rem;
-    }
-    .status-wrapper div {
-      margin-top: 0.2rem;
+      margin: 1rem 0;
       color: #555;
-      font-size: 0.95rem;
     }
   </style>
 </head>
@@ -106,7 +95,7 @@
     <h1>📦 Live Paper Stock Update (VMG)</h1>
   </header>
 
-  <button class="sound-button top-right" id="soundToggle" onclick="toggleSound(this)">🔔</button>
+  <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -120,7 +109,7 @@
     </tbody>
   </table>
 
-  <div class="status-wrapper">
+  <div id="info-section">
     <div id="lastUpdated">Last updated: --</div>
     <div id="status">Checking for stable stock…</div>
   </div>
@@ -131,13 +120,10 @@
     let soundEnabled = false;
     let lastStableData = [];
 
-    function toggleSound(btn) {
+    function enableSound() {
       soundEnabled = !soundEnabled;
+      const btn = document.getElementById("soundToggle");
       btn.classList.toggle("active");
-      btn.classList.remove("bounce");
-      void btn.offsetWidth;
-      btn.classList.add("bounce");
-
       if (soundEnabled) {
         document.getElementById("dingSound").play().catch(() => {});
       }
@@ -180,10 +166,9 @@
           qtyTd.className = "high-stock";
         }
 
-        // Flash quantity cell
-        qtyTd.classList.remove("flash-qty");
-        void qtyTd.offsetWidth;
-        qtyTd.classList.add("flash-qty");
+        if (lastStableData[i] && qtyStr !== lastStableData[i][1]) {
+          qtyTd.classList.add("flash-qty");
+        }
 
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
@@ -201,8 +186,8 @@
 
     async function fetchStableData() {
       document.getElementById("status").textContent = "Checking for stable stock…";
-
       const samples = [];
+
       for (let i = 0; i < 3; i++) {
         const data = await fetchCSVData();
         samples.push(data);
@@ -215,7 +200,6 @@
         lastStableData = samples[0];
         updateTable(samples[0]);
         document.getElementById("status").textContent = "✅ Stable stock displayed.";
-
         if (soundEnabled) {
           document.getElementById("dingSound").play().catch(() => {});
         }
@@ -225,7 +209,7 @@
     }
 
     fetchStableData();
-    setInterval(fetchStableData, 3000);
+    setInterval(fetchStableData, 3000); // every 3 seconds
   </script>
 </body>
 </html>
