@@ -26,11 +26,11 @@
       width: 90%;
       margin: 1rem auto;
       border-collapse: collapse;
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
     .stock-table th, .stock-table td {
       border: 1px solid #ccc;
-      padding: 1rem;
+      padding: 1.2rem;
       text-align: center;
     }
     .high-stock {
@@ -43,7 +43,12 @@
       color: white;
       font-weight: bold;
     }
-    .low-stock, .out-of-stock {
+    .low-stock {
+      background-color: #e74c3c;
+      color: white;
+      font-weight: bold;
+    }
+    .out-of-stock {
       background-color: #e74c3c;
       color: white;
       font-weight: bold;
@@ -51,6 +56,12 @@
     #lastUpdated {
       text-align: center;
       font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    #status {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
       margin-bottom: 1rem;
     }
     .sound-button {
@@ -77,6 +88,7 @@
   <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
 
   <div id="lastUpdated">Last updated: --</div>
+  <div id="status">Checking for stable stock…</div>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -93,91 +105,94 @@
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
-  let soundEnabled = false;
-  let lastStableData = [];
+    let soundEnabled = false;
+    let lastStableData = [];
 
-  function enableSound() {
-    soundEnabled = !soundEnabled;
-    const sound = document.getElementById("dingSound");
-    const btn = document.getElementById("soundToggle");
-    btn.classList.toggle("active");
-    if (soundEnabled) sound.play().catch(() => {});
-  }
+    function enableSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById("soundToggle");
+      btn.classList.toggle("active");
+      if (soundEnabled) {
+        document.getElementById("dingSound").play().catch(() => {});
+      }
+    }
 
-  async function fetchCSVData() {
-    const bust = Date.now();
-    const url = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
-    const res = await fetch(url);
-    const text = await res.text();
-    return text.trim().split("\n").slice(1).map(r => r.map(v => v.trim()));
-  }
+    async function fetchCSVData() {
+      const bust = Date.now();
+      const url = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      return text.trim().split("\n").slice(1).map(r => r.split(","));
+    }
 
-  function updateTable(data) {
-    const table = document.getElementById("stockBody");
-    table.innerHTML = "";
-    data.forEach(([brand, qtyStr]) => {
-      const qty = parseInt(qtyStr);
-      const tr = document.createElement("tr");
+    function updateTable(data) {
+      const table = document.getElementById("stockBody");
+      table.innerHTML = "";
+      data.forEach(([brand, qtyStr]) => {
+        const qty = parseInt(qtyStr);
+        const tr = document.createElement("tr");
 
-      const brandTd = document.createElement("td");
-      brandTd.textContent = brand;
-      brandTd.style.fontSize = "2rem";
+        const brandTd = document.createElement("td");
+        brandTd.textContent = brand;
+        brandTd.style.fontSize = "2rem";
 
-      const qtyTd = document.createElement("td");
-      qtyTd.style.fontSize = "2rem";
+        const qtyTd = document.createElement("td");
+        qtyTd.style.fontSize = "2rem";
 
-      if (qty === 0) {
-        qtyTd.textContent = "OUT OF STOCK";
-        qtyTd.className = "out-of-stock";
-      } else if (qty < 200) {
-        qtyTd.textContent = qty;
-        qtyTd.className = "low-stock";
-      } else if (qty <= 700) {
-        qtyTd.textContent = qty;
-        qtyTd.className = "medium-stock";
-      } else {
-        qtyTd.textContent = qty;
-        qtyTd.className = "high-stock";
+        if (qty === 0) {
+          qtyTd.textContent = "OUT OF STOCK";
+          qtyTd.className = "out-of-stock";
+        } else if (qty < 200) {
+          qtyTd.textContent = qty;
+          qtyTd.className = "low-stock";
+        } else if (qty <= 700) {
+          qtyTd.textContent = qty;
+          qtyTd.className = "medium-stock";
+        } else {
+          qtyTd.textContent = qty;
+          qtyTd.className = "high-stock";
+        }
+
+        tr.appendChild(brandTd);
+        tr.appendChild(qtyTd);
+        table.appendChild(tr);
+      });
+
+      const now = new Date();
+      document.getElementById("lastUpdated").textContent = "Last updated: " + now.toLocaleTimeString();
+    }
+
+    function isSameData(a, b) {
+      if (a.length !== b.length) return false;
+      return a.every((row, i) => row[1] === b[i][1]);
+    }
+
+    async function fetchStableData() {
+      document.getElementById("status").textContent = "Checking for stable stock…";
+      const samples = [];
+
+      for (let i = 0; i < 3; i++) {
+        const data = await fetchCSVData();
+        samples.push(data);
+        await new Promise(r => setTimeout(r, 1000));
       }
 
-      tr.appendChild(brandTd);
-      tr.appendChild(qtyTd);
-      table.appendChild(tr);
-    });
+      const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
 
-    document.getElementById("lastUpdated").textContent =
-      "Last updated: " + new Date().toLocaleTimeString();
-  }
-
-  function isSameData(a, b) {
-    if (a.length !== b.length) return false;
-    return a.every((row, i) =>
-      row[0] === b[i][0] && row[1] === b[i][1]
-    );
-  }
-
-  async function fetchStableData() {
-    document.getElementById("status").textContent = "Checking for stable stock…";
-    const samples = [];
-
-    for (let i = 0; i < 3; i++) {
-      const data = await fetchCSVData();
-      samples.push(data);
-      await new Promise(r => setTimeout(r, 1500));
+      if (allSame && !isSameData(lastStableData, samples[0])) {
+        lastStableData = samples[0];
+        updateTable(samples[0]);
+        document.getElementById("status").textContent = "✅ Stable stock displayed.";
+        if (soundEnabled) {
+          document.getElementById("dingSound").play().catch(() => {});
+        }
+      } else {
+        document.getElementById("status").textContent = "⚠️ Stock still changing…";
+      }
     }
 
-    const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
-
-    if (allSame && !isSameData(lastStableData, samples[0])) {
-      lastStableData = samples[0];
-      updateTable(samples[0]);
-      if (soundEnabled) document.getElementById("dingSound").play().catch(() => {});
-      document.getElementById("status").textContent = "✅ Stable stock displayed.";
-    } else {
-      document.getElementById("status").textContent = "⚠️ Stock still changing…";
-    }
-  }
-
-  fetchStableData();
-  setInterval(fetchStableData, 6000);
-</script>
+    fetchStableData();
+    setInterval(fetchStableData, 3000); // every 3 seconds
+  </script>
+</body>
+</html>
