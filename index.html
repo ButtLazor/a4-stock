@@ -53,19 +53,6 @@
       color: white;
       font-weight: bold;
     }
-    #lastUpdated {
-      text-align: center;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-    }
-    #status {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #555;
-      margin-bottom: 1rem;
-      white-space: pre;
-      min-height: 1.2em;
-    }
     .sound-button {
       padding: 6px 12px;
       border: none;
@@ -80,8 +67,6 @@
       color: #333;
       font-weight: bold;
     }
-
-    /* Bounce animation for sound button */
     @keyframes bounce {
       0%   { transform: scale(1); }
       30%  { transform: scale(1.2); }
@@ -93,14 +78,26 @@
       animation: bounce 0.4s ease;
     }
 
-    /* Pulse glow for updated quantity */
-    @keyframes glowPulse {
-      0% { box-shadow: 0 0 0px rgba(254,169,61, 0.8); }
-      50% { box-shadow: 0 0 10px rgba(254,169,61, 1); }
-      100% { box-shadow: 0 0 0px rgba(254,169,61, 0.8); }
+    /* Flash animation for quantity change */
+    @keyframes flashQty {
+      0%, 100% { background-color: inherit; }
+      25% { background-color: #FFD700; color: #000; }
+      50% { background-color: #FFEB3B; color: #000; }
+      75% { background-color: #FFD700; color: #000; }
     }
-    .pulse-glow {
-      animation: glowPulse 1s ease;
+    .flash-qty {
+      animation: flashQty 1.2s ease 1;
+    }
+
+    .status-wrapper {
+      text-align: center;
+      font-size: 1rem;
+      margin: 0.5rem 0 1rem;
+    }
+    .status-wrapper div {
+      margin-top: 0.2rem;
+      color: #555;
+      font-size: 0.95rem;
     }
   </style>
 </head>
@@ -110,9 +107,6 @@
   </header>
 
   <button class="sound-button top-right" id="soundToggle" onclick="toggleSound(this)">🔔</button>
-
-  <div id="lastUpdated">Last updated: --</div>
-  <div id="status">Checking for stable stock…</div>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -126,6 +120,11 @@
     </tbody>
   </table>
 
+  <div class="status-wrapper">
+    <div id="lastUpdated">Last updated: --</div>
+    <div id="status">Checking for stable stock…</div>
+  </div>
+
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
@@ -136,7 +135,7 @@
       soundEnabled = !soundEnabled;
       btn.classList.toggle("active");
       btn.classList.remove("bounce");
-      void btn.offsetWidth; // Restart animation
+      void btn.offsetWidth;
       btn.classList.add("bounce");
 
       if (soundEnabled) {
@@ -152,20 +151,10 @@
       return text.trim().split("\n").slice(1).map(r => r.split(","));
     }
 
-    function typeWriterEffect(text, elementId) {
-      const el = document.getElementById(elementId);
-      let i = 0;
-      el.textContent = "";
-      const interval = setInterval(() => {
-        el.textContent += text.charAt(i);
-        i++;
-        if (i >= text.length) clearInterval(interval);
-      }, 30);
-    }
-
     function updateTable(data) {
       const table = document.getElementById("stockBody");
       table.innerHTML = "";
+
       data.forEach(([brand, qtyStr], i) => {
         const qty = parseInt(qtyStr);
         const tr = document.createElement("tr");
@@ -191,10 +180,10 @@
           qtyTd.className = "high-stock";
         }
 
-        // Add pulse glow on update
-        qtyTd.classList.remove("pulse-glow");
+        // Flash quantity cell
+        qtyTd.classList.remove("flash-qty");
         void qtyTd.offsetWidth;
-        qtyTd.classList.add("pulse-glow");
+        qtyTd.classList.add("flash-qty");
 
         tr.appendChild(brandTd);
         tr.appendChild(qtyTd);
@@ -211,7 +200,7 @@
     }
 
     async function fetchStableData() {
-      typeWriterEffect("Checking for stable stock…", "status");
+      document.getElementById("status").textContent = "Checking for stable stock…";
 
       const samples = [];
       for (let i = 0; i < 3; i++) {
@@ -225,18 +214,18 @@
       if (allSame && !isSameData(lastStableData, samples[0])) {
         lastStableData = samples[0];
         updateTable(samples[0]);
-        typeWriterEffect("✅ Stable stock displayed.", "status");
+        document.getElementById("status").textContent = "✅ Stable stock displayed.";
 
         if (soundEnabled) {
           document.getElementById("dingSound").play().catch(() => {});
         }
       } else {
-        typeWriterEffect("⚠️ Stock still changing…", "status");
+        document.getElementById("status").textContent = "⚠️ Stock still changing…";
       }
     }
 
     fetchStableData();
-    setInterval(fetchStableData, 3000); // every 3 seconds
+    setInterval(fetchStableData, 3000);
   </script>
 </body>
 </html>
