@@ -154,10 +154,10 @@
   <script>
     let soundEnabled = false;
     let lastStableData = [];
-    let countdown = 60; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
+    let countdown = 45; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
     let devMode = false;
     const devPanel = document.getElementById("devPanel");
-    const fetchInterval = 20000; // 🔧 Fetch every 30 seconds (30000ms)
+    const fetchInterval = 15000; // 🔧 Fetch every 30 seconds (30000ms)
     const sampleCount = 3;       // 🔧 Number of samples to take before updating
 
     let fetchHistory = [];
