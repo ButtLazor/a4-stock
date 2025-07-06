@@ -21,8 +21,6 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      display: flex;
-      gap: 10px;
     }
     .stock-table {
       width: 90%;
@@ -55,7 +53,7 @@
       color: white;
       font-weight: bold;
     }
-    .sound-button, .dev-button {
+    .sound-button {
       padding: 6px 12px;
       border: none;
       border-radius: 5px;
@@ -63,51 +61,64 @@
       color: white;
       cursor: pointer;
       font-size: 1.2rem;
-      transition: transform 0.3s ease;
+      transition: transform 0.2s;
     }
-    .sound-button.active, .dev-button.active {
+    .sound-button.active {
       background-color: #FEA93D;
       color: #333;
       font-weight: bold;
-      animation: bounce 0.5s;
     }
+    .sound-button.clicked {
+      animation: bounce 0.4s ease;
+    }
+
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      0% { transform: scale(1); }
+      30% { transform: scale(1.3); }
+      60% { transform: scale(0.9); }
+      100% { transform: scale(1); }
     }
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 0px rgba(255,255,0,0.5); }
-      50% { box-shadow: 0 0 10px rgba(255,255,0,1); }
-      100% { box-shadow: 0 0 0px rgba(255,255,0,0.5); }
+
+    .flash {
+      animation: flashQty 0.6s ease-in-out 3;
     }
-    .pulse-update {
-      animation: pulse-glow 0.8s ease-in-out 2;
+
+    @keyframes flashQty {
+      0%, 100% { background-color: #ffff99; }
+      50% { background-color: #ffe066; }
     }
-    #updateInfo {
+
+    #footer-info {
       text-align: center;
       font-size: 1rem;
       margin: 1rem 0;
-      color: #333;
     }
-    #devPanel {
-      width: 90%;
+
+    #countdown {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    #devToggle {
       margin: 1rem auto;
-      padding: 1rem;
-      border: 2px dashed #aaa;
-      background-color: #fff9e6;
-      display: none;
+      display: block;
+      padding: 8px 16px;
       font-size: 1rem;
+      background-color: #ccc;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    .dev-entry {
-      margin-bottom: 1rem;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 0.5rem;
-    }
-    .dev-entry pre {
+
+    #devPanel {
+      max-width: 800px;
+      margin: 0 auto;
+      display: none;
+      font-size: 0.9rem;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
       white-space: pre-wrap;
-      word-wrap: break-word;
-      background-color: #f0f0f0;
-      padding: 0.5rem;
     }
   </style>
 </head>
@@ -116,10 +127,7 @@
     <h1>📦 Live Paper Stock Update (VMG)</h1>
   </header>
 
-  <div class="top-right">
-    <button class="sound-button" id="soundToggle" onclick="toggleSound()">🔔</button>
-    <button class="dev-button" id="devToggle" onclick="toggleDev()">👨‍💻 Dev</button>
-  </div>
+  <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
 
   <table class="stock-table" id="stockTable">
     <thead>
@@ -133,27 +141,33 @@
     </tbody>
   </table>
 
-  <div id="updateInfo">
+  <div id="footer-info">
     <div id="lastUpdated">Last updated: --</div>
-    <div id="status">Checking for stable stock…</div>
-    <div id="countdown">Next update in: 03:00</div>
+    <div id="countdown">Next update in: --</div>
   </div>
 
+  <button id="devToggle" onclick="toggleDev()">Developer Mode</button>
   <div id="devPanel"></div>
 
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
 
   <script>
     let soundEnabled = false;
-    let devMode = false;
     let lastStableData = [];
-    let countdown = 90;
-    const devLogs = [];
+    let countdown = 90; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
+    let devMode = false;
+    const devPanel = document.getElementById("devPanel");
+    const fetchInterval = 30000; // 🔧 Fetch every 30 seconds (30000ms)
+    const sampleCount = 3;       // 🔧 Number of samples to take before updating
 
-    function toggleSound() {
+    let fetchHistory = [];
+
+    function enableSound() {
       soundEnabled = !soundEnabled;
       const btn = document.getElementById("soundToggle");
       btn.classList.toggle("active");
+      btn.classList.add("clicked");
+      setTimeout(() => btn.classList.remove("clicked"), 300);
       if (soundEnabled) {
         document.getElementById("dingSound").play().catch(() => {});
       }
@@ -161,22 +175,10 @@
 
     function toggleDev() {
       devMode = !devMode;
-      const panel = document.getElementById("devPanel");
-      const btn = document.getElementById("devToggle");
-      panel.style.display = devMode ? "block" : "none";
-      btn.classList.toggle("active");
-      if (devMode) renderDevLogs();
-    }
-
-    function renderDevLogs() {
-      const panel = document.getElementById("devPanel");
-      panel.innerHTML = "<h3>🧪 Developer Mode</h3>";
-      devLogs.slice().reverse().forEach(log => {
-        const div = document.createElement("div");
-        div.className = "dev-entry";
-        div.innerHTML = `<strong>${log.time}</strong><pre>${JSON.stringify(log.data, null, 2)}</pre>`;
-        panel.appendChild(div);
-      });
+      devPanel.style.display = devMode ? 'block' : 'none';
+      if (devMode) {
+        updateDevPanel();
+      }
     }
 
     async function fetchCSVData() {
@@ -184,12 +186,22 @@
       const url = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
       const res = await fetch(url);
       const text = await res.text();
-      const data = text.trim().split("\n").slice(1).map(r => r.split(","));
-      const timestamp = new Date().toLocaleTimeString();
-      devLogs.push({ time: timestamp, data });
-      if (devLogs.length > 3) devLogs.shift();
-      if (devMode) renderDevLogs();
-      return data;
+      const parsed = text.trim().split("\n").slice(1).map(r => r.split(","));
+      fetchHistory.unshift({ time: new Date().toLocaleTimeString(), data: parsed });
+      fetchHistory = fetchHistory.slice(0, 3);
+      if (devMode) updateDevPanel();
+      return parsed;
+    }
+
+    function updateDevPanel() {
+      devPanel.textContent = fetchHistory.map(f =>
+        `[${f.time}]\n` + f.data.map(r => `${r[0]}: ${r[1]}`).join("\n")
+      ).join("\n\n");
+    }
+
+    function isSameData(a, b) {
+      if (a.length !== b.length) return false;
+      return a.every((row, i) => row[1] === b[i][1]);
     }
 
     function updateTable(data) {
@@ -206,24 +218,24 @@
         const qtyTd = document.createElement("td");
         qtyTd.style.fontSize = "2rem";
 
-        if (qty === 0) {
-          qtyTd.textContent = "OUT OF STOCK";
-          qtyTd.className = "out-of-stock";
-        } else if (qty < 200) {
-          qtyTd.textContent = qty;
-          qtyTd.className = "low-stock";
-        } else if (qty <= 700) {
-          qtyTd.textContent = qty;
-          qtyTd.className = "medium-stock";
-        } else {
-          qtyTd.textContent = qty;
-          qtyTd.className = "high-stock";
+        const prevQty = lastStableData[index]?.[1];
+        if (prevQty !== undefined && prevQty !== qtyStr) {
+          qtyTd.classList.add("flash");
+          setTimeout(() => qtyTd.classList.remove("flash"), 1800);
         }
 
-        // Highlight change
-        const previous = lastStableData[index];
-        if (previous && previous[1] !== qtyStr) {
-          qtyTd.classList.add("pulse-update");
+        if (qty === 0) {
+          qtyTd.textContent = "OUT OF STOCK";
+          qtyTd.className += " out-of-stock";
+        } else if (qty < 200) {
+          qtyTd.textContent = qty;
+          qtyTd.className += " low-stock";
+        } else if (qty <= 700) {
+          qtyTd.textContent = qty;
+          qtyTd.className += " medium-stock";
+        } else {
+          qtyTd.textContent = qty;
+          qtyTd.className += " high-stock";
         }
 
         tr.appendChild(brandTd);
@@ -235,19 +247,13 @@
       document.getElementById("lastUpdated").textContent = "Last updated: " + now.toLocaleTimeString();
     }
 
-    function isSameData(a, b) {
-      if (!a || !b || a.length !== b.length) return false;
-      return a.every((row, i) => row[1] === b[i][1]);
-    }
-
     async function monitorStableStock() {
-      document.getElementById("status").textContent = "Checking for stable stock…";
       const samples = [];
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < sampleCount; i++) { // 🔧 Uses the value above (3)
         const data = await fetchCSVData();
         samples.push(data);
-        await new Promise(r => setTimeout(r, 30000));
+        await new Promise(r => setTimeout(r, fetchInterval)); // 🔧 Delay between each fetch (30s)
       }
 
       const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
@@ -255,15 +261,10 @@
       if (allSame && !isSameData(lastStableData, samples[0])) {
         lastStableData = samples[0];
         updateTable(samples[0]);
-        document.getElementById("status").textContent = "✅ Stable stock displayed.";
         if (soundEnabled) {
           document.getElementById("dingSound").play().catch(() => {});
         }
-      } else {
-        document.getElementById("status").textContent = "⚠️ Stock still changing…";
       }
-
-      countdown = 180;
     }
 
     function updateCountdown() {
@@ -272,18 +273,12 @@
       document.getElementById("countdown").textContent =
         `Next update in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
       countdown--;
-      if (countdown < 0) countdown = 90;
+      if (countdown < 0) countdown = 90; // 🔧 Reset value (30s × 3)
     }
 
-    setInterval(updateCountdown, 1000);
-
-    async function loopMonitor() {
-      while (true) {
-        await monitorStableStock();
-      }
-    }
-
-    loopMonitor();
+    monitorStableStock();
+    setInterval(monitorStableStock, fetchInterval * sampleCount); // 🔧 30s * 3 = 90s interval
+    setInterval(updateCountdown, 1000); // Countdown updates every second
   </script>
 </body>
 </html>
