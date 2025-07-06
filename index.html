@@ -61,7 +61,7 @@
       color: white;
       cursor: pointer;
       font-size: 1.2rem;
-      transition: transform 0.3s;
+      transition: transform 0.3s ease;
     }
     .sound-button.active {
       background-color: #FEA93D;
@@ -70,23 +70,29 @@
       animation: bounce 0.5s;
     }
     @keyframes bounce {
-      0%   { transform: scale(1); }
-      30%  { transform: scale(1.3); }
-      60%  { transform: scale(0.9); }
-      100% { transform: scale(1); }
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
     }
-    @keyframes flash {
-      0%, 100% { opacity: 1; }
-      50%      { opacity: 0.2; }
+
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 0px rgba(255,255,0,0.5); }
+      50% { box-shadow: 0 0 10px rgba(255,255,0,1); }
+      100% { box-shadow: 0 0 0px rgba(255,255,0,0.5); }
     }
-    .flash-qty {
-      animation: flash 0.4s ease-in-out 2;
+
+    .pulse-update {
+      animation: pulse-glow 0.8s ease-in-out 2;
     }
-    #info-section {
+
+    #updateInfo {
       text-align: center;
       font-size: 1rem;
       margin: 1rem 0;
-      color: #555;
+      color: #333;
     }
   </style>
 </head>
@@ -109,9 +115,10 @@
     </tbody>
   </table>
 
-  <div id="info-section">
+  <div id="updateInfo">
     <div id="lastUpdated">Last updated: --</div>
     <div id="status">Checking for stable stock…</div>
+    <div id="countdown">Next update in: 03:00</div>
   </div>
 
   <audio id="dingSound" src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto"></audio>
@@ -119,6 +126,7 @@
   <script>
     let soundEnabled = false;
     let lastStableData = [];
+    let countdown = 180;
 
     function enableSound() {
       soundEnabled = !soundEnabled;
@@ -140,8 +148,7 @@
     function updateTable(data) {
       const table = document.getElementById("stockBody");
       table.innerHTML = "";
-
-      data.forEach(([brand, qtyStr], i) => {
+      data.forEach(([brand, qtyStr], index) => {
         const qty = parseInt(qtyStr);
         const tr = document.createElement("tr");
 
@@ -166,8 +173,10 @@
           qtyTd.className = "high-stock";
         }
 
-        if (lastStableData[i] && qtyStr !== lastStableData[i][1]) {
-          qtyTd.classList.add("flash-qty");
+        // Highlight if changed
+        const previous = lastStableData[index];
+        if (previous && previous[1] !== qtyStr) {
+          qtyTd.classList.add("pulse-update");
         }
 
         tr.appendChild(brandTd);
@@ -180,18 +189,18 @@
     }
 
     function isSameData(a, b) {
-      if (a.length !== b.length) return false;
+      if (!a || !b || a.length !== b.length) return false;
       return a.every((row, i) => row[1] === b[i][1]);
     }
 
-    async function fetchStableData() {
+    async function monitorStableStock() {
       document.getElementById("status").textContent = "Checking for stable stock…";
       const samples = [];
 
       for (let i = 0; i < 3; i++) {
         const data = await fetchCSVData();
         samples.push(data);
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 60000)); // wait 60s between fetches
       }
 
       const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
@@ -206,10 +215,30 @@
       } else {
         document.getElementById("status").textContent = "⚠️ Stock still changing…";
       }
+
+      countdown = 180;
     }
 
-    fetchStableData();
-    setInterval(fetchStableData, 3000); // every 3 seconds
+    // Start countdown timer
+    function updateCountdown() {
+      const minutes = Math.floor(countdown / 60);
+      const seconds = countdown % 60;
+      document.getElementById("countdown").textContent =
+        `Next update in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+      countdown--;
+      if (countdown < 0) countdown = 180;
+    }
+
+    setInterval(updateCountdown, 1000);
+
+    // Begin monitoring on load and repeat after each 3-minute cycle
+    async function loopMonitor() {
+      while (true) {
+        await monitorStableStock();
+      }
+    }
+
+    loopMonitor();
   </script>
 </body>
 </html>
