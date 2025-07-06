@@ -154,11 +154,11 @@
   <script>
     let soundEnabled = false;
     let lastStableData = [];
-    let countdown = 9; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
     let devMode = false;
     const devPanel = document.getElementById("devPanel");
-    const fetchInterval = 3000; // 🔧 Fetch every 30 seconds (30000ms)
+    const fetchInterval = 3000; // 🔧 Fetch every 3 seconds
     const sampleCount = 3;       // 🔧 Number of samples to take before updating
+    let countdown = (fetchInterval * sampleCount) / 1000; // in seconds
 
     let fetchHistory = [];
 
@@ -268,13 +268,10 @@
     }
 
     function updateCountdown() {
-      const minutes = Math.floor(countdown / 60);
-      const seconds = countdown % 60;
-      document.getElementById("countdown").textContent =
-        `Next update in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-      countdown--;
-      if (countdown < 0) countdown = 90; // 🔧 Reset value (30s × 3)
-    }
+    document.getElementById('countdown').textContent = `Next update in: ${countdown}s`;
+    countdown--;
+    if (countdown < 0) countdown = (fetchInterval * sampleCount) / 1000;
+}
 
     monitorStableStock();
     setInterval(monitorStableStock, fetchInterval * sampleCount); // 🔧 30s * 3 = 90s interval
