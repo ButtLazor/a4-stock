@@ -154,10 +154,10 @@
   <script>
     let soundEnabled = false;
     let lastStableData = [];
-    let countdown = 90; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
+    let countdown = 60; // 🔧 Change this if fetch interval * sample count changes (30s x 3 = 90s)
     let devMode = false;
     const devPanel = document.getElementById("devPanel");
-    const fetchInterval = 30000; // 🔧 Fetch every 30 seconds (30000ms)
+    const fetchInterval = 20000; // 🔧 Fetch every 30 seconds (30000ms)
     const sampleCount = 3;       // 🔧 Number of samples to take before updating
 
     let fetchHistory = [];
@@ -253,7 +253,7 @@
       for (let i = 0; i < sampleCount; i++) { // 🔧 Uses the value above (3)
         const data = await fetchCSVData();
         samples.push(data);
-        await new Promise(r => setTimeout(r, fetchInterval)); // 🔧 Delay between each fetch (30s)
+        await new Promise(r => setTimeout(r, fetchInterval)); // 🔧 Delay between each fetch
       }
 
       const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
