@@ -147,7 +147,7 @@
     let soundEnabled = false;
     let devMode = false;
     let lastStableData = [];
-    let countdown = 180;
+    let countdown = 90;
     const devLogs = [];
 
     function toggleSound() {
@@ -247,7 +247,7 @@
       for (let i = 0; i < 3; i++) {
         const data = await fetchCSVData();
         samples.push(data);
-        await new Promise(r => setTimeout(r, 60000));
+        await new Promise(r => setTimeout(r, 30000));
       }
 
       const allSame = samples.every((sample, i, arr) => isSameData(sample, arr[0]));
@@ -272,7 +272,7 @@
       document.getElementById("countdown").textContent =
         `Next update in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
       countdown--;
-      if (countdown < 0) countdown = 180;
+      if (countdown < 0) countdown = 90;
     }
 
     setInterval(updateCountdown, 1000);
