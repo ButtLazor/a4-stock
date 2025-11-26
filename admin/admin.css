@@ -153,10 +153,26 @@ tbody tr {
 tbody td {
   padding: 12px;
   font-size: 15px;
+  vertical-align: middle;
+}
+
+/* Editable Name */
+.item-text {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.item-input {
+  display: none;
+  width: 90%;
+  padding: 6px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
 /* Quantity input */
-tbody input {
+tbody input[type="number"] {
   width: 100px;
   padding: 8px;
   border: 1px solid #d1d5db;
