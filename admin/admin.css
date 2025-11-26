@@ -43,7 +43,7 @@ header h1 {
 }
 
 .header-nav .header-btn:hover {
-  background: #f0f6ff;
+  background: #e9f2fa;
 }
 
 /* ===============================
@@ -51,8 +51,7 @@ header h1 {
 =============================== */
 .dashboard {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  grid-template-columns: 1fr;
   padding: 40px;
 }
 
@@ -63,9 +62,20 @@ header h1 {
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.card h2 {
+.full-width {
+  grid-column: span 1;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-header h2 {
   font-size: 22px;
-  margin-bottom: 20px;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -74,8 +84,9 @@ header h1 {
 }
 
 /* ===============================
-   INPUTS & BUTTONS
+   BUTTONS
 =============================== */
+
 .open-modal-btn {
   background: #006FA1;
   color: white;
@@ -88,26 +99,17 @@ header h1 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  transition: 0.2s;
+}
+
+.open-modal-btn.small {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 6px;
 }
 
 .open-modal-btn:hover {
   background: #005580;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  font-size: 15px;
-  margin-bottom: 15px;
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  outline: none;
-  transition: 0.2s;
-}
-
-input:focus {
-  border-color: #006FA1;
-  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
 }
 
 .submit-modal-btn {
@@ -128,12 +130,12 @@ input:focus {
 }
 
 /* ===============================
-   TABLE STYLE
+   TABLE STYLING
 =============================== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 thead th {
@@ -154,11 +156,17 @@ tbody td {
   font-size: 15px;
 }
 
+/* Number inputs */
 tbody input {
   width: 100px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   text-align: center;
+  font-size: 15px;
 }
 
+/* Delete button */
 .delete-btn {
   background: #d9534f;
   color: white;
@@ -170,12 +178,13 @@ tbody input {
 }
 
 .delete-btn:hover {
-  background: #b73c39;
+  background: #c23b38;
 }
 
 /* ===============================
    MODAL POPUP
 =============================== */
+
 .modal {
   display: none;
   position: fixed;
@@ -214,6 +223,15 @@ tbody input {
   color: #006FA1;
   font-size: 20px;
   margin-bottom: 20px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 .close {
