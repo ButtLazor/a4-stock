@@ -6,54 +6,46 @@
   <title>Live Stock Update (VMG)</title>
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 
 <body>
 
 <header>
-  <h1>📦 Live Paper Stock Update (VMG)</h1>
+  <h1><i class="fa-solid fa-boxes-stacked"></i> Live Paper Stock Update (VMG)</h1>
 
   <div class="header-right">
-    <button id="darkToggle" onclick="toggleDarkMode()">🌙</button>
-    <button class="sound-button" id="soundToggle" onclick="enableSound()">🔔</button>
+    <button id="darkToggle" onclick="toggleDarkMode()" class="icon-btn">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <button id="soundToggle" onclick="enableSound()" class="icon-btn">
+      <i class="fa-solid fa-bell"></i>
+    </button>
   </div>
 </header>
 
-<div id="viewSwitch">
-  <button onclick="switchView('table')">📋 Table</button>
-  <button onclick="switchView('chart')">📈 Chart</button>
-</div>
+<!-- TABLE -->
+<table class="stock-table" id="stockTable">
+  <thead>
+    <tr>
+      <th>Brand</th>
+      <th>Quantity (Box)</th>
+    </tr>
+  </thead>
 
-<!-- TABLE VIEW -->
-<div id="tableView">
-  <table class="stock-table" id="stockTable">
-    <thead>
-      <tr>
-        <th>Brand</th>
-        <th>Quantity (Box)</th>
-      </tr>
-    </thead>
+  <tbody id="stockBody">
+    <!-- Skeleton rows -->
+    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+  </tbody>
+</table>
 
-    <tbody id="stockBody">
-      <!-- Skeleton while loading -->
-      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
-      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
-      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
-    </tbody>
-
-  </table>
-
-  <div id="footer-info">
-    <div id="lastUpdated">Last updated: --</div>
-    <div id="countdown">Next update in: --</div>
-  </div>
-</div>
-
-<!-- CHART VIEW -->
-<div id="chartView" style="display:none;">
-  <canvas id="stockChart"></canvas>
+<div id="footer-info">
+  <div id="lastUpdated"><i class="fa-regular fa-clock"></i> Last updated: --</div>
+  <div id="countdown"><i class="fa-solid fa-rotate-right"></i> Next update in: --</div>
 </div>
 
 <audio id="dingSound" 
