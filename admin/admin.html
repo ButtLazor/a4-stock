@@ -66,7 +66,12 @@
     <h3>Add New Item</h3>
 
     <input id="modalName" type="text" placeholder="Item Name">
-    <input id="modalUOM" type="text" placeholder="UOM (e.g. pcs, box, set)">
+
+    <select id="modalUOM">
+      <option value="PCS">PCS</option>
+      <option value="BOX">BOX</option>
+    </select>
+
     <input id="modalQty" type="number" placeholder="Quantity">
 
     <button class="submit-modal-btn" onclick="submitAddItem()">
@@ -74,8 +79,6 @@
     </button>
   </div>
 </div>
-
-
 
 
 <!-- Supabase Client -->
