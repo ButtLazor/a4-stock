@@ -1,158 +1,128 @@
-/* BASE */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background-color: #f4f4f4;
-  color: #333;
-  transition: background 0.3s, color 0.3s;
-}
+let soundEnabled = false;
+let lastStableData = [];
+let countdown = 0;
 
-/* HEADER */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #006FA1;
-  color: white;
-  padding: 1rem 2rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
+const fetchInterval = 9000;
+const sampleCount = 3;
+const countdownReset = () => Math.floor((fetchInterval * sampleCount) / 1000);
 
-header h1 i {
-  margin-right: 10px;
-}
+/* SOUND TOGGLE */
+function enableSound() {
+  soundEnabled = !soundEnabled;
 
-/* ICON BUTTONS */
-.icon-btn {
-  margin-left: 12px;
-  padding: 10px 12px;
-  border: none;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
-  cursor: pointer;
-  color: white;
-  font-size: 1.1rem;
-  transition: 0.25s;
-}
+  const btn = document.getElementById("soundToggle");
+  btn.classList.toggle("active");
 
-.icon-btn:hover {
-  background: rgba(255,255,255,0.35);
-  transform: scale(1.12);
-}
+  const icon = btn.querySelector("i");
+  icon.className = soundEnabled ? "fa-solid fa-bell-slash" : "fa-solid fa-bell";
 
-.icon-btn.active {
-  background: #FEA93D !important;
-  color: black !important;
-}
-
-/* TABLE */
-.stock-table {
-  width: 90%;
-  margin: 1.5rem auto;
-  border-collapse: collapse;
-  font-size: 1.9rem;
-
-  border-radius: 15px;
-  overflow: hidden;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.stock-table th, .stock-table td {
-  border-bottom: 1px solid #ddd;
-  padding: 1.2rem;
-  text-align: center;
-}
-
-/* PREMIUM DARK COLOR THEME */
-.high-stock {
-  background-color: #81C784; /* Soft green */
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.medium-stock {
-  background-color: #FFD54F; /* Soft gold */
-  color: #000000;
-  font-weight: bold;
-}
-
-.low-stock {
-  background-color: #E57373; /* Soft coral */
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.out-of-stock {
-  background-color: #EF5350; /* Premium red */
-  color: #ffffff;
-  font-weight: bold;
-}
-
-/* SKELETON LOADING */
-.skeleton {
-  height: 35px;
-  background: linear-gradient(90deg, #dcdcdc 25%, #e9e9e9 50%, #dcdcdc 75%);
-  background-size: 200% 100%;
-  animation: skeleton 1.4s infinite;
-  border-radius: 8px;
-}
-
-@keyframes skeleton {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* FOOTER */
-#footer-info {
-  text-align: center;
-  color: #555;
-  font-size: 1.2rem;
-  padding-bottom: 2rem;
-}
-
-#footer-info i {
-  margin-right: 6px;
+  if (soundEnabled) {
+    const audio = document.getElementById("dingSound");
+    audio.play().catch(() => {});
+  }
 }
 
 /* DARK MODE */
-body.dark {
-  background-color: #1f1f1f;
-  color: #eaeaea;
+function toggleDarkMode() {
+  const body = document.body;
+  body.classList.toggle("dark");
+
+  const icon = document.getElementById("darkToggle").querySelector("i");
+  icon.className = body.classList.contains("dark")
+    ? "fa-solid fa-sun"
+    : "fa-solid fa-moon";
+
+  localStorage.setItem("darkMode", body.classList.contains("dark"));
 }
 
-body.dark header {
-  background-color: #003f5f;
+// Load saved preference
+window.onload = () => {
+  if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark");
+    document.getElementById("darkToggle").querySelector("i").className =
+      "fa-solid fa-sun";
+  }
+};
+
+/* FETCH CSV */
+async function fetchCSVData() {
+  const bust = Date.now();
+  const url =
+    `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
+
+  const res = await fetch(url);
+  const text = await res.text();
+  return text.trim().split("\n").slice(1).map(r => r.split(","));
 }
 
-body.dark .stock-table {
-  background-color: #2a2a2a;
-  box-shadow: 0 4px 12px rgba(255,255,255,0.05);
+/* UPDATE TABLE */
+function updateTable(data) {
+  const table = document.getElementById("stockBody");
+  table.innerHTML = "";
+
+  data.forEach(([brand, qtyStr]) => {
+    const tr = document.createElement("tr");
+    const qty = parseInt(qtyStr);
+
+    const brandTd = document.createElement("td");
+    brandTd.textContent = brand;
+
+    const qtyTd = document.createElement("td");
+
+    if (qty === 0) qtyTd.className = "out-of-stock";
+    else if (qty < 200) qtyTd.className = "low-stock";
+    else if (qty <= 700) qtyTd.className = "medium-stock";
+    else qtyTd.className = "high-stock";
+
+    qtyTd.textContent = qty === 0 ? "OUT OF STOCK" : qty;
+
+    tr.appendChild(brandTd);
+    tr.appendChild(qtyTd);
+    table.appendChild(tr);
+  });
+
+  document.getElementById("lastUpdated").innerHTML =
+    `<i class="fa-regular fa-clock"></i> Last updated: ${new Date().toLocaleTimeString()}`;
 }
 
-body.dark .stock-table th, 
-body.dark .stock-table td {
-  border-color: #555;
+/* STOCK CHECK */
+async function monitorStableStock() {
+  const samples = [];
+
+  for (let i = 0; i < sampleCount; i++) {
+    samples.push(await fetchCSVData());
+    await new Promise(r => setTimeout(r, fetchInterval));
+  }
+
+  const allSame = samples.every(
+    (s, i, arr) => JSON.stringify(s) === JSON.stringify(arr[0])
+  );
+
+  if (allSame && JSON.stringify(samples[0]) !== JSON.stringify(lastStableData)) {
+    lastStableData = samples[0];
+    updateTable(samples[0]);
+
+    if (soundEnabled) {
+      const audio = document.getElementById("dingSound");
+      audio.play().catch(() => {});
+    }
+  }
 }
 
-body.dark .skeleton {
-  background: linear-gradient(90deg, #555 25%, #666 50%, #555 75%);
+/* COUNTDOWN */
+function updateCountdown() {
+  const minutes = Math.floor(countdown / 60);
+  const seconds = countdown % 60;
+
+  document.getElementById("countdown").innerHTML =
+    `<i class="fa-solid fa-rotate-right"></i> Next update in: ${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+  countdown--;
+  if (countdown < 0) countdown = countdownReset();
 }
 
-/* DARK MODE COLORS — Harmonized */
-body.dark .high-stock {
-  background-color: #66BB6A;
-}
-
-body.dark .medium-stock {
-  background-color: #FFCA28;
-  color: #000;
-}
-
-body.dark .low-stock {
-  background-color: #EF5350;
-}
-
-body.dark .out-of-stock {
-  background-color: #E53935;
-}
+/* INIT */
+monitorStableStock();
+countdown = countdownReset();
+setInterval(monitorStableStock, fetchInterval * sampleCount);
+setInterval(updateCountdown, 1000);
