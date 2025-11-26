@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>VMG Stock Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <!-- Dashboard Styles -->
   <link rel="stylesheet" href="admin.css">
@@ -16,24 +17,34 @@
 
 <header>
   <h1><i class="fa-solid fa-warehouse"></i> Stock Dashboard (VMG)</h1>
+
+  <div class="header-nav">
+    <button onclick="location.href='../index.html'" class="header-btn">
+      <i class="fa-solid fa-arrow-left"></i> Back to Viewer
+    </button>
+  </div>
 </header>
+
 
 <div class="dashboard">
 
   <!-- Add New Item -->
   <div class="card">
-    <h2>Add New Item</h2>
+    <h2><i class="fa-solid fa-plus"></i> Add New Item</h2>
+
     <input id="newName" placeholder="Item Name">
     <input id="newQty" type="number" placeholder="Quantity">
 
-    <button onclick="addItem()">
-      <i class="fa-solid fa-plus"></i> Add Item
+    <button onclick="addItem()" class="add-btn">
+      <i class="fa-solid fa-circle-plus"></i> Add Item
     </button>
   </div>
 
-  <!-- Update Stock Table -->
+
+  <!-- Update Stock -->
   <div class="card">
-    <h2>Update Stocks</h2>
+    <h2><i class="fa-solid fa-pen-to-square"></i> Update Stocks</h2>
+
     <table id="stockTable">
       <thead>
         <tr>
@@ -42,6 +53,7 @@
           <th>Actions</th>
         </tr>
       </thead>
+
       <tbody id="stockBody">
         <tr><td colspan="3">Loading…</td></tr>
       </tbody>
@@ -50,7 +62,7 @@
 
 </div>
 
-<!-- Supabase Client -->
+<!-- Supabase Client (MUST load before dashboard.js) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- Dashboard Logic -->
