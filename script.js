@@ -1,12 +1,16 @@
+/* ============================================================
+   Supabase Connection
+============================================================ */
+const supabaseClient = supabase.createClient(
+  "https://oypsfuygfwxaoghlpeaz.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHNmdXlnZnd4YW9naGxwZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTAxMDYsImV4cCI6MjA3OTcyNjEwNn0.VDueoceN3jbgCOo1D6xp4i9tLMyHG247Y4nFdBv0QI8"
+);
+
+/* ============================================================
+   UI Toggle Logic
+============================================================ */
 let soundEnabled = false;
-let lastStableData = [];
-let countdown = 0;
 
-const fetchInterval = 9000;
-const sampleCount = 3;
-const countdownReset = () => Math.floor((fetchInterval * sampleCount) / 1000);
-
-/* SOUND TOGGLE */
 function enableSound() {
   soundEnabled = !soundEnabled;
 
@@ -17,52 +21,55 @@ function enableSound() {
   icon.className = soundEnabled ? "fa-solid fa-bell-slash" : "fa-solid fa-bell";
 
   if (soundEnabled) {
-    const audio = document.getElementById("dingSound");
-    audio.play().catch(() => {});
+    document.getElementById("dingSound").play().catch(() => {});
   }
 }
 
-/* DARK MODE */
 function toggleDarkMode() {
-  const body = document.body;
-  body.classList.toggle("dark");
+  document.body.classList.toggle("dark");
 
   const icon = document.getElementById("darkToggle").querySelector("i");
-  icon.className = body.classList.contains("dark")
+  icon.className = document.body.classList.contains("dark")
     ? "fa-solid fa-sun"
     : "fa-solid fa-moon";
 
-  localStorage.setItem("darkMode", body.classList.contains("dark"));
+  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
 }
 
-// Load saved preference
-window.onload = () => {
-  if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark");
-    document.getElementById("darkToggle").querySelector("i").className =
-      "fa-solid fa-sun";
+if (localStorage.getItem("darkMode") === "true") {
+  document.body.classList.add("dark");
+  document.getElementById("darkToggle").querySelector("i").className =
+    "fa-solid fa-sun";
+}
+
+/* ============================================================
+   Fetch Latest Stock
+============================================================ */
+async function fetchStockData() {
+  const { data, error } = await supabaseClient
+    .from("stock_items")
+    .select("brand, quantity")
+    .order("brand", { ascending: true });
+
+  if (error) {
+    console.error("Supabase fetch error:", error);
+    return [];
   }
-};
 
-/* FETCH CSV */
-async function fetchCSVData() {
-  const bust = Date.now();
-  const url =
-    `https://docs.google.com/spreadsheets/d/e/2PACX-1vQhN6fUWPVPrCPdTyY9xIR_hcOc25np8UlAhdFEMK6SPxGOuie5Ozm6hPnQ8mdR5qWB7lhjgXMaZ809/pub?gid=0&single=true&output=csv&t=${bust}`;
-
-  const res = await fetch(url);
-  const text = await res.text();
-  return text.trim().split("\n").slice(1).map(r => r.split(","));
+  return data.map(item => [item.brand, item.quantity.toString()]);
 }
 
-/* UPDATE TABLE */
+/* ============================================================
+   Update Table UI
+============================================================ */
 function updateTable(data) {
   const table = document.getElementById("stockBody");
   table.innerHTML = "";
 
   data.forEach(([brand, qtyStr]) => {
-    const tr = document.createElement("tr");
     const qty = parseInt(qtyStr);
+
+    const tr = document.createElement("tr");
 
     const brandTd = document.createElement("td");
     brandTd.textContent = brand;
@@ -83,46 +90,38 @@ function updateTable(data) {
 
   document.getElementById("lastUpdated").innerHTML =
     `<i class="fa-regular fa-clock"></i> Last updated: ${new Date().toLocaleTimeString()}`;
+
+  if (soundEnabled) {
+    document.getElementById("dingSound").play().catch(() => {});
+  }
 }
 
-/* STOCK CHECK */
-async function monitorStableStock() {
-  const samples = [];
+/* ============================================================
+   REAL-TIME SUBSCRIPTION (insert, update, delete)
+============================================================ */
+supabaseClient
+  .channel("stock_items_updates")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "stock_items",
+    },
+    async (payload) => {
+      console.log("Realtime change detected:", payload);
 
-  for (let i = 0; i < sampleCount; i++) {
-    samples.push(await fetchCSVData());
-    await new Promise(r => setTimeout(r, fetchInterval));
-  }
-
-  const allSame = samples.every(
-    (s, i, arr) => JSON.stringify(s) === JSON.stringify(arr[0])
-  );
-
-  if (allSame && JSON.stringify(samples[0]) !== JSON.stringify(lastStableData)) {
-    lastStableData = samples[0];
-    updateTable(samples[0]);
-
-    if (soundEnabled) {
-      const audio = document.getElementById("dingSound");
-      audio.play().catch(() => {});
+      // Always reload updated data
+      const stock = await fetchStockData();
+      updateTable(stock);
     }
-  }
-}
+  )
+  .subscribe();
 
-/* COUNTDOWN */
-function updateCountdown() {
-  const minutes = Math.floor(countdown / 60);
-  const seconds = countdown % 60;
-
-  document.getElementById("countdown").innerHTML =
-    `<i class="fa-solid fa-rotate-right"></i> Next update in: ${minutes}:${seconds.toString().padStart(2, "0")}`;
-
-  countdown--;
-  if (countdown < 0) countdown = countdownReset();
-}
-
-/* INIT */
-monitorStableStock();
-countdown = countdownReset();
-setInterval(monitorStableStock, fetchInterval * sampleCount);
-setInterval(updateCountdown, 1000);
+/* ============================================================
+   Initial Load
+============================================================ */
+(async () => {
+  const stock = await fetchStockData();
+  updateTable(stock);
+})();
