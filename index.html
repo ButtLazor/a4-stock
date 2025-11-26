@@ -25,20 +25,25 @@
 
   <div class="header-right">
 
+    <!-- Admin Dashboard Button -->
+    <button onclick="location.href='admin/admin.html'" class="icon-btn" title="Admin Dashboard">
+      <i class="fa-solid fa-gear"></i>
+    </button>
+
     <!-- Dark Mode Toggle -->
-    <button id="darkToggle" onclick="toggleDarkMode()" class="icon-btn">
+    <button id="darkToggle" onclick="toggleDarkMode()" class="icon-btn" title="Toggle Dark Mode">
       <i class="fa-solid fa-moon"></i>
     </button>
 
     <!-- Sound Toggle -->
-    <button id="soundToggle" onclick="enableSound()" class="icon-btn">
+    <button id="soundToggle" onclick="enableSound()" class="icon-btn" title="Sound Alert Toggle">
       <i class="fa-solid fa-bell"></i>
     </button>
 
   </div>
 </header>
 
-<!-- TABLE VIEW -->
+<!-- STOCK TABLE -->
 <table class="stock-table" id="stockTable">
   <thead>
     <tr>
@@ -48,7 +53,7 @@
   </thead>
 
   <tbody id="stockBody">
-    <!-- Skeleton Loading -->
+    <!-- Skeleton loading placeholders -->
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
@@ -61,7 +66,7 @@
   <div id="countdown"><i class="fa-solid fa-rotate-right"></i> Next update in: --</div>
 </div>
 
-<!-- Sound File -->
+<!-- Notification Sound -->
 <audio id="dingSound" 
   src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav"
   preload="auto">
