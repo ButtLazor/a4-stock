@@ -42,14 +42,15 @@
     <table id="stockTable">
       <thead>
         <tr>
-          <th>Brand</th>
+          <th>Item</th>
+          <th>UOM</th>
           <th>Quantity</th>
           <th>Actions</th>
         </tr>
       </thead>
 
       <tbody id="stockBody">
-        <tr><td colspan="3">Loading…</td></tr>
+        <tr><td colspan="4">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -65,6 +66,7 @@
     <h3>Add New Item</h3>
 
     <input id="modalName" type="text" placeholder="Item Name">
+    <input id="modalUOM" type="text" placeholder="UOM (e.g. pcs, box, set)">
     <input id="modalQty" type="number" placeholder="Quantity">
 
     <button class="submit-modal-btn" onclick="submitAddItem()">
@@ -72,6 +74,8 @@
     </button>
   </div>
 </div>
+
+
 
 
 <!-- Supabase Client -->
