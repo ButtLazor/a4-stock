@@ -10,7 +10,7 @@ async function loadStock() {
   const { data, error } = await supabaseClient
     .from("stock_items")
     .select("*")
-    .order("brand", { ascending: true });
+    .order("Item", { ascending: true });
 
   const body = document.getElementById("stockBody");
   body.innerHTML = "";
@@ -26,16 +26,16 @@ async function loadStock() {
 
     tr.innerHTML = `
       <td onclick="enableNameEdit(this, ${item.id})">
-        <span class="item-text">${item.brand}</span>
-        <input class="item-input" value="${item.brand}"
+        <span class="item-text">${item.Item}</span>
+        <input class="item-input" value="${item.Item}"
           onblur="saveName(${item.id}, this.value)"
           onkeydown="handleNameKey(event, ${item.id}, this)">
       </td>
 
       <td>
         <select onchange="updateUOM(${item.id}, this.value)">
-          <option value="BOX" ${item.uom === "BOX" ? "selected" : ""}>BOX</option>
-          <option value="PCS" ${item.uom === "PCS" ? "selected" : ""}>PCS</option>
+          <option value="PCS" ${item.uom === "pcs" || item.uom === "PCS" ? "selected" : ""}>PCS</option>
+          <option value="BOX" ${item.uom === "box" || item.uom === "BOX" ? "selected" : ""}>BOX</option>
         </select>
       </td>
 
@@ -82,7 +82,7 @@ async function saveName(id, newName) {
 
   const { error } = await supabaseClient
     .from("stock_items")
-    .update({ brand: newName })
+    .update({ Item: newName })
     .eq("id", id);
 
   if (error) {
@@ -98,6 +98,8 @@ async function saveName(id, newName) {
 // Update UOM
 // ===============================
 async function updateUOM(id, newUom) {
+  newUom = newUom.toUpperCase();
+
   const { error } = await supabaseClient
     .from("stock_items")
     .update({ uom: newUom })
@@ -108,9 +110,13 @@ async function updateUOM(id, newUom) {
 
 
 // ===============================
-// Update quantity
+// Update Quantity
 // ===============================
 async function updateQty(id, qty) {
+  qty = parseInt(qty);
+
+  if (isNaN(qty)) return;
+
   const { error } = await supabaseClient
     .from("stock_items")
     .update({ quantity: qty })
@@ -152,7 +158,7 @@ function closeAddModal() {
 // Add new item
 async function submitAddItem() {
   const name = document.getElementById("modalName").value.trim();
-  const uom = document.getElementById("modalUOM").value.trim() || "PCS";
+  const uom = document.getElementById("modalUOM").value.trim().toUpperCase() || "PCS";
   const qty = parseInt(document.getElementById("modalQty").value);
 
   if (!name || isNaN(qty)) {
@@ -162,10 +168,11 @@ async function submitAddItem() {
 
   const { error } = await supabaseClient
     .from("stock_items")
-    .insert([{ brand: name, uom: uom, quantity: qty }]);
+    .insert([{ Item: name, uom: uom, quantity: qty }]);
 
   if (error) {
     alert("Failed to add item: " + error.message);
+    console.error(error);
     return;
   }
 
