@@ -28,17 +28,32 @@
 
 <div class="dashboard">
 
-  <!-- Add New Item -->
+  
+  <!-- Add Item Button -->
   <div class="card">
-    <h2><i class="fa-solid fa-plus"></i> Add New Item</h2>
-
-    <input id="newName" placeholder="Item Name">
-    <input id="newQty" type="number" placeholder="Quantity">
-
-    <button onclick="addItem()" class="add-btn">
-      <i class="fa-solid fa-circle-plus"></i> Add Item
+    <h2><i class="fa-solid fa-plus"></i> Add Item</h2>
+  
+    <button class="open-modal-btn" onclick="openAddModal()">
+      <i class="fa-solid fa-circle-plus"></i> Add New Item
     </button>
   </div>
+  
+  <!-- Add Item Modal -->
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAddModal()">&times;</span>
+  
+      <h3>Add New Item</h3>
+  
+      <input id="modalName" type="text" placeholder="Item Name">
+      <input id="modalQty" type="number" placeholder="Quantity">
+  
+      <button class="submit-modal-btn" onclick="submitAddItem()">
+        <i class="fa-solid fa-plus"></i> Add Item
+      </button>
+    </div>
+  </div>
+
 
 
   <!-- Update Stock -->
