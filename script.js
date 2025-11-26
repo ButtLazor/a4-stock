@@ -6,37 +6,36 @@ const fetchInterval = 9000;
 const sampleCount = 3;
 const countdownReset = () => Math.floor((fetchInterval * sampleCount) / 1000);
 
-let stockChart = null;
-let chartHistory = { labels: [], quantities: [] };
-
 /* SOUND TOGGLE */
 function enableSound() {
   soundEnabled = !soundEnabled;
+
   const btn = document.getElementById("soundToggle");
   btn.classList.toggle("active");
+
+  const icon = btn.querySelector("i");
+  icon.className = soundEnabled ? "fa-solid fa-bell-slash" : "fa-solid fa-bell";
 
   if (soundEnabled) document.getElementById("dingSound").play().catch(() => {});
 }
 
 /* DARK MODE */
 function toggleDarkMode() {
-  document.body.classList.toggle("dark");
-  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+  const body = document.body;
+  body.classList.toggle("dark");
+
+  const icon = document.getElementById("darkToggle").querySelector("i");
+  icon.className = body.classList.contains("dark")
+    ? "fa-solid fa-sun"
+    : "fa-solid fa-moon";
+
+  localStorage.setItem("darkMode", body.classList.contains("dark"));
 }
 
 // Load preference
 if (localStorage.getItem("darkMode") === "true") {
   document.body.classList.add("dark");
-}
-
-/* VIEW SWITCH */
-function switchView(view) {
-  document.getElementById("tableView").style.display =
-    view === "table" ? "block" : "none";
-  document.getElementById("chartView").style.display =
-    view === "chart" ? "block" : "none";
-
-  if (view === "chart") updateChart();
+  document.getElementById("darkToggle").querySelector("i").className = "fa-solid fa-sun";
 }
 
 /* FETCH CSV */
@@ -47,16 +46,15 @@ async function fetchCSVData() {
 
   const res = await fetch(url);
   const text = await res.text();
-  const parsed = text.trim().split("\n").slice(1).map(r => r.split(","));
-  return parsed;
+  return text.trim().split("\n").slice(1).map(r => r.split(","));
 }
 
-/* TABLE UPDATE */
+/* UPDATE TABLE */
 function updateTable(data) {
   const table = document.getElementById("stockBody");
-  table.innerHTML = ""; // remove skeleton
+  table.innerHTML = "";
 
-  data.forEach(([brand, qtyStr], index) => {
+  data.forEach(([brand, qtyStr]) => {
     const tr = document.createElement("tr");
     const qty = parseInt(qtyStr);
 
@@ -77,35 +75,11 @@ function updateTable(data) {
     table.appendChild(tr);
   });
 
-  document.getElementById("lastUpdated").textContent =
-    "Last updated: " + new Date().toLocaleTimeString();
+  document.getElementById("lastUpdated").innerHTML =
+    `<i class="fa-regular fa-clock"></i> Last updated: ${new Date().toLocaleTimeString()}`;
 }
 
-/* CHART VIEW */
-function updateChart() {
-  const ctx = document.getElementById("stockChart");
-
-  if (stockChart) stockChart.destroy();
-
-  stockChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: lastStableData.map(row => row[0]),
-      datasets: [{
-        label: "Stock Levels",
-        data: lastStableData.map(row => parseInt(row[1])),
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-}
-
-/* MAIN MONITOR FUNCTION */
+/* MONITOR STOCK */
 async function monitorStableStock() {
   const samples = [];
 
@@ -118,13 +92,11 @@ async function monitorStableStock() {
     (s, i, arr) => JSON.stringify(s) === JSON.stringify(arr[0])
   );
 
-  if (allSame) {
-    if (JSON.stringify(samples[0]) !== JSON.stringify(lastStableData)) {
-      lastStableData = samples[0];
-      updateTable(samples[0]);
+  if (allSame && JSON.stringify(samples[0]) !== JSON.stringify(lastStableData)) {
+    lastStableData = samples[0];
+    updateTable(samples[0]);
 
-      if (soundEnabled) document.getElementById("dingSound").play().catch(() => {});
-    }
+    if (soundEnabled) document.getElementById("dingSound").play().catch(() => {});
   }
 }
 
@@ -133,8 +105,8 @@ function updateCountdown() {
   const minutes = Math.floor(countdown / 60);
   const seconds = countdown % 60;
 
-  document.getElementById("countdown").textContent =
-    `Next update in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+  document.getElementById("countdown").innerHTML =
+    `<i class="fa-solid fa-rotate-right"></i> Next update in: ${minutes}:${seconds.toString().padStart(2, "0")}`;
 
   countdown--;
   if (countdown < 0) countdown = countdownReset();
