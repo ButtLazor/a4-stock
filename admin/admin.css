@@ -86,7 +86,6 @@ header h1 {
 /* ===============================
    BUTTONS
 =============================== */
-
 .open-modal-btn {
   background: #006FA1;
   color: white;
@@ -156,7 +155,7 @@ tbody td {
   font-size: 15px;
 }
 
-/* Number inputs */
+/* Quantity input */
 tbody input {
   width: 100px;
   padding: 8px;
@@ -164,6 +163,22 @@ tbody input {
   border-radius: 6px;
   text-align: center;
   font-size: 15px;
+}
+
+/* UOM dropdown */
+table select {
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+}
+
+table select:focus {
+  outline: none;
+  border-color: #006FA1;
+  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
 }
 
 /* Delete button */
@@ -184,7 +199,6 @@ tbody input {
 /* ===============================
    MODAL POPUP
 =============================== */
-
 .modal {
   display: none;
   position: fixed;
@@ -225,7 +239,8 @@ tbody input {
   margin-bottom: 20px;
 }
 
-.modal-content input {
+.modal-content input,
+.modal-content select {
   width: 100%;
   padding: 12px;
   font-size: 15px;
@@ -244,28 +259,6 @@ tbody input {
 .close:hover {
   color: #333;
 }
-
-/* UOM column */
-tbody td:nth-child(2) {
-  width: 120px;
-}
-
-/* UOM dropdown */
-table select {
-  padding: 8px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  cursor: pointer;
-}
-
-table select:focus {
-  outline: none;
-  border-color: #006FA1;
-  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
-}
-
 
 /* ===============================
    RESPONSIVE
