@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VMG Stock Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<header>
+  <h1><i class="fa-solid fa-warehouse"></i> Stock Dashboard (VMG)</h1>
+</header>
+
+<div class="dashboard">
+
+  <!-- Add New Item -->
+  <div class="card">
+    <h2>Add New Item</h2>
+    <input id="newName" placeholder="Item Name">
+    <input id="newQty" type="number" placeholder="Quantity">
+
+    <button onclick="addItem()">
+      <i class="fa-solid fa-plus"></i> Add Item
+    </button>
+  </div>
+
+  <!-- Update Stock Table -->
+  <div class="card">
+    <h2>Update Stocks</h2>
+    <table id="stockTable">
+      <thead>
+        <tr>
+          <th>Brand</th>
+          <th>Quantity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="stockBody">
+        <tr><td colspan="3">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
