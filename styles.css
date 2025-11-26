@@ -1,0 +1,126 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+header {
+  background-color: #006FA1;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+.top-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.stock-table {
+  width: 90%;
+  margin: 1rem auto;
+  border-collapse: collapse;
+  font-size: 2rem;
+}
+
+.stock-table th, .stock-table td {
+  border: 1px solid #ccc;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.high-stock {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+
+.medium-stock {
+  background-color: #FEA93D;
+  color: white;
+  font-weight: bold;
+}
+
+.low-stock {
+  background-color: #e74c3c;
+  color: white;
+  font-weight: bold;
+}
+
+.out-of-stock {
+  background-color: #e74c3c;
+  color: white;
+  font-weight: bold;
+}
+
+.sound-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: #006FA1;
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+.sound-button.active {
+  background-color: #FEA93D;
+  color: #333;
+  font-weight: bold;
+}
+
+.sound-button.clicked {
+  animation: bounce 0.4s ease;
+}
+
+@keyframes bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  60% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.flash {
+  animation: flashQty 0.6s ease-in-out 3;
+}
+
+@keyframes flashQty {
+  0%, 100% { background-color: #ffff99; }
+  50% { background-color: #ffe066; }
+}
+
+#footer-info {
+  text-align: center;
+  font-size: 1rem;
+  margin: 1rem 0;
+}
+
+#countdown {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+#devToggle {
+  margin: 1rem auto;
+  display: block;
+  padding: 8px 16px;
+  font-size: 1rem;
+  background-color: #ccc;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#devPanel {
+  max-width: 800px;
+  margin: 0 auto;
+  display: none;
+  font-size: 0.9rem;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  white-space: pre-wrap;
+}
