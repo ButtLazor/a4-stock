@@ -4,10 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Live Stock Update (VMG)</title>
-  <link rel="stylesheet" href="styles.css">
+
+  <!-- Favicon (Box Icon) -->
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/679/679720.png">
 
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -16,17 +21,21 @@
   <h1><i class="fa-solid fa-boxes-stacked"></i> Live Paper Stock Update (VMG)</h1>
 
   <div class="header-right">
+
+    <!-- Dark Mode Toggle -->
     <button id="darkToggle" onclick="toggleDarkMode()" class="icon-btn">
       <i class="fa-solid fa-moon"></i>
     </button>
 
+    <!-- Sound Toggle -->
     <button id="soundToggle" onclick="enableSound()" class="icon-btn">
       <i class="fa-solid fa-bell"></i>
     </button>
+
   </div>
 </header>
 
-<!-- TABLE -->
+<!-- TABLE VIEW -->
 <table class="stock-table" id="stockTable">
   <thead>
     <tr>
@@ -36,23 +45,29 @@
   </thead>
 
   <tbody id="stockBody">
-    <!-- Skeleton rows -->
+
+    <!-- Skeleton while loading -->
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+
   </tbody>
 </table>
 
+<!-- FOOTER -->
 <div id="footer-info">
   <div id="lastUpdated"><i class="fa-regular fa-clock"></i> Last updated: --</div>
   <div id="countdown"><i class="fa-solid fa-rotate-right"></i> Next update in: --</div>
 </div>
 
+<!-- Notification Sound -->
 <audio id="dingSound" 
   src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" 
   preload="auto">
 </audio>
 
+<!-- Main Script -->
 <script src="script.js"></script>
+
 </body>
 </html>
