@@ -7,43 +7,49 @@ const supabaseClient = supabase.createClient(
 );
 
 /* ============================================================
-   UI Toggle Logic
+   Variables
 ============================================================ */
 let soundEnabled = false;
+let lastData = null;
+const REFRESH_INTERVAL_MS = 3000; // <-- now 3 seconds
+let countdown = Math.floor(REFRESH_INTERVAL_MS / 1000);
 
+/* ============================================================
+   UI Toggles
+============================================================ */
 function enableSound() {
   soundEnabled = !soundEnabled;
 
   const btn = document.getElementById("soundToggle");
-  btn.classList.toggle("active");
+  if (btn) btn.classList.toggle("active");
 
-  const icon = btn.querySelector("i");
-  icon.className = soundEnabled ? "fa-solid fa-bell-slash" : "fa-solid fa-bell";
+  const icon = btn?.querySelector("i");
+  if (icon) icon.className = soundEnabled ? "fa-solid fa-bell-slash" : "fa-solid fa-bell";
 
   if (soundEnabled) {
-    document.getElementById("dingSound").play().catch(() => {});
+    document.getElementById("dingSound")?.play().catch(() => {});
   }
 }
 
 function toggleDarkMode() {
-  document.body.classList.toggle("dark");
+  const body = document.body;
+  body.classList.toggle("dark");
 
-  const icon = document.getElementById("darkToggle").querySelector("i");
-  icon.className = document.body.classList.contains("dark")
-    ? "fa-solid fa-sun"
-    : "fa-solid fa-moon";
+  const icon = document.getElementById("darkToggle")?.querySelector("i");
+  if (icon) icon.className = body.classList.contains("dark") ? "fa-solid fa-sun" : "fa-solid fa-moon";
 
-  localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+  localStorage.setItem("darkMode", body.classList.contains("dark"));
 }
 
+// Apply saved theme
 if (localStorage.getItem("darkMode") === "true") {
   document.body.classList.add("dark");
-  document.getElementById("darkToggle").querySelector("i").className =
-    "fa-solid fa-sun";
+  const icon = document.getElementById("darkToggle")?.querySelector("i");
+  if (icon) icon.className = "fa-solid fa-sun";
 }
 
 /* ============================================================
-   Fetch Latest Stock
+   Fetch Stock Data From Supabase
 ============================================================ */
 async function fetchStockData() {
   const { data, error } = await supabaseClient
@@ -52,27 +58,27 @@ async function fetchStockData() {
     .order("brand", { ascending: true });
 
   if (error) {
-    console.error("Supabase fetch error:", error);
+    console.error("Supabase error:", error);
     return [];
   }
 
-  return data.map(item => [item.brand, item.quantity.toString()]);
+  return data;
 }
 
 /* ============================================================
    Update Table UI
 ============================================================ */
 function updateTable(data) {
-  const table = document.getElementById("stockBody");
-  table.innerHTML = "";
+  const tbody = document.getElementById("stockBody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
 
-  data.forEach(([brand, qtyStr]) => {
-    const qty = parseInt(qtyStr);
-
+  data.forEach(item => {
     const tr = document.createElement("tr");
+    const qty = item.quantity;
 
     const brandTd = document.createElement("td");
-    brandTd.textContent = brand;
+    brandTd.textContent = item.brand;
 
     const qtyTd = document.createElement("td");
 
@@ -85,43 +91,59 @@ function updateTable(data) {
 
     tr.appendChild(brandTd);
     tr.appendChild(qtyTd);
-    table.appendChild(tr);
+    tbody.appendChild(tr);
   });
 
-  document.getElementById("lastUpdated").innerHTML =
-    `<i class="fa-regular fa-clock"></i> Last updated: ${new Date().toLocaleTimeString()}`;
-
-  if (soundEnabled) {
-    document.getElementById("dingSound").play().catch(() => {});
+  const lastUpdatedEl = document.getElementById("lastUpdated");
+  if (lastUpdatedEl) {
+    lastUpdatedEl.innerHTML = `<i class="fa-regular fa-clock"></i> Last updated: ${new Date().toLocaleTimeString()}`;
   }
 }
 
 /* ============================================================
-   REAL-TIME SUBSCRIPTION (insert, update, delete)
+   Auto Refresh Logic
 ============================================================ */
-supabaseClient
-  .channel("stock_items_updates")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "stock_items",
-    },
-    async (payload) => {
-      console.log("Realtime change detected:", payload);
+async function refreshStock() {
+  const newData = await fetchStockData();
 
-      // Always reload updated data
-      const stock = await fetchStockData();
-      updateTable(stock);
+  // Simple string compare to detect changes
+  const newStr = JSON.stringify(newData);
+  const lastStr = JSON.stringify(lastData);
+
+  if (newStr !== lastStr) {
+    updateTable(newData);
+
+    // Play sound only when there was a previous dataset (avoid ding on first load)
+    if (soundEnabled && lastData !== null) {
+      document.getElementById("dingSound")?.play().catch(() => {});
     }
-  )
-  .subscribe();
+
+    lastData = newData;
+  }
+}
 
 /* ============================================================
-   Initial Load
+   Countdown Timer
+============================================================ */
+function updateCountdown() {
+  const countdownEl = document.getElementById("countdown");
+  if (!countdownEl) return;
+
+  countdownEl.innerHTML =
+    `<i class="fa-solid fa-rotate-right"></i> Next update in: ${countdown}s`;
+
+  countdown--;
+  if (countdown < 0) countdown = Math.floor(REFRESH_INTERVAL_MS / 1000);
+}
+
+/* ============================================================
+   Init
 ============================================================ */
 (async () => {
-  const stock = await fetchStockData();
-  updateTable(stock);
+  await refreshStock(); // initial load
+  countdown = Math.floor(REFRESH_INTERVAL_MS / 1000);
+
+  // periodic refresh every 3 seconds
+  setInterval(refreshStock, REFRESH_INTERVAL_MS);
+  setInterval(updateCountdown, 1000);
 })();
