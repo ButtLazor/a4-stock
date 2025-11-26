@@ -11,14 +11,14 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- Main CSS (cache-busted) -->
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 
 <body>
 
 <header>
-  <h1><i class="fa-solid fa-boxes-stacked"></i> Live Paper Stock Update (VMG)</h1>
+  <h1><i class="fa-solid fa-boxes-stacked"></i> Live Stock Update (VMG)</h1>
 
   <div class="header-right">
 
@@ -45,12 +45,10 @@
   </thead>
 
   <tbody id="stockBody">
-
     <!-- Skeleton while loading -->
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-
   </tbody>
 </table>
 
@@ -60,14 +58,13 @@
   <div id="countdown"><i class="fa-solid fa-rotate-right"></i> Next update in: --</div>
 </div>
 
-<!-- Notification Sound -->
+<!-- Sound File -->
 <audio id="dingSound" 
-  src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" 
-  preload="auto">
+  src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto">
 </audio>
 
 <!-- Main Script -->
-<script src="script.js"></script>
+<script src="script.js?v=3"></script>
 
 </body>
 </html>
