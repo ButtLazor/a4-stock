@@ -5,15 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Live Stock Update (VMG)</title>
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-  <header>
-    <h1>Live Stock Update (VMG)</h1>
-  </header>
 
-  <button class="sound-button top-right" id="soundToggle" onclick="enableSound()">🔔</button>
+<header>
+  <h1>📦 Live Paper Stock Update (VMG)</h1>
 
+  <div class="header-right">
+    <button id="darkToggle" onclick="toggleDarkMode()">🌙</button>
+    <button class="sound-button" id="soundToggle" onclick="enableSound()">🔔</button>
+  </div>
+</header>
+
+<div id="viewSwitch">
+  <button onclick="switchView('table')">📋 Table</button>
+  <button onclick="switchView('chart')">📈 Chart</button>
+</div>
+
+<!-- TABLE VIEW -->
+<div id="tableView">
   <table class="stock-table" id="stockTable">
     <thead>
       <tr>
@@ -21,24 +35,32 @@
         <th>Quantity (Box)</th>
       </tr>
     </thead>
+
     <tbody id="stockBody">
-      <tr><td colspan="2">Loading…</td></tr>
+      <!-- Skeleton while loading -->
+      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
+      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
+      <tr class="skeleton-row"><td class="skeleton"></td><td class="skeleton"></td></tr>
     </tbody>
+
   </table>
 
   <div id="footer-info">
     <div id="lastUpdated">Last updated: --</div>
     <div id="countdown">Next update in: --</div>
   </div>
+</div>
 
-  <button id="devToggle" onclick="toggleDev()">Developer Mode</button>
-  <div id="devPanel"></div>
+<!-- CHART VIEW -->
+<div id="chartView" style="display:none;">
+  <canvas id="stockChart"></canvas>
+</div>
 
-  <audio id="dingSound" 
-    src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" 
-    preload="auto">
-  </audio>
+<audio id="dingSound" 
+  src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" 
+  preload="auto">
+</audio>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
