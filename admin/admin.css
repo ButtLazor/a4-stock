@@ -1,82 +1,167 @@
+/* ===============================
+   GENERAL LAYOUT
+=============================== */
 body {
-  font-family: Arial, sans-serif;
-  background: #f0f2f5;
   margin: 0;
+  padding: 0;
+  font-family: "Inter", Arial, sans-serif;
+  background: #f3f4f6;
+  color: #333;
 }
 
 header {
   background: #006FA1;
   color: white;
-  padding: 1rem 2rem;
-  font-size: 1.5rem;
+  padding: 20px 40px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-.dashboard {
-  width: 90%;
-  margin: 2rem auto;
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
   display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-nav .header-btn {
+  background: white;
+  color: #006FA1;
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.header-nav .header-btn:hover {
+  background: #f0f6ff;
+}
+
+/* ===============================
+   DASHBOARD GRID
+=============================== */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 40px;
 }
 
 .card {
-  flex: 1;
-  min-width: 370px;
   background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: 14px;
+  padding: 25px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
 .card h2 {
-  margin-top: 0;
+  font-size: 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #006FA1;
 }
 
-.card input {
+/* ===============================
+   INPUTS & BUTTONS
+=============================== */
+input {
   width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  margin-bottom: 12px;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  font-size: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.2s;
 }
 
-.card button {
-  padding: 10px 15px;
+input:focus {
+  border-color: #006FA1;
+  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
+}
+
+.add-btn {
   background: #006FA1;
-  color: white;
+  padding: 10px 18px;
+  font-size: 15px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  color: white;
   cursor: pointer;
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
-.delete-btn {
-  background: #EF5350;
-  color: white;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
+.add-btn:hover {
+  background: #005580;
 }
 
+/* ===============================
+   TABLE STYLE
+=============================== */
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 15px;
 }
 
-th, td {
+thead th {
+  text-align: left;
   padding: 12px;
-  border-bottom: 1px solid #ddd;
+  font-size: 15px;
+  font-weight: 600;
+  color: #006FA1;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody td {
+  padding: 12px;
+  font-size: 15px;
+}
+
+tbody input {
+  width: 100px;
   text-align: center;
 }
 
-input[type="number"] {
-  width: 90px;
-  padding: 6px;
-  text-align: center;
+.delete-btn {
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.delete-btn:hover {
+  background: #b73c39;
+}
+
+/* ===============================
+   RESPONSIVE
+=============================== */
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
 }
