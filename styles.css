@@ -7,7 +7,7 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
-/* HEADER FIXED */
+/* HEADER */
 header {
   display: flex;
   justify-content: space-between;
@@ -15,22 +15,47 @@ header {
   background-color: #006FA1;
   color: white;
   padding: 1rem 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.header-right button {
-  margin-left: 10px;
+header h1 i {
+  margin-right: 10px;
 }
 
-/* TABLE VISUAL IMPROVEMENTS */
+/* ICON BUTTONS */
+.icon-btn {
+  margin-left: 12px;
+  padding: 10px 12px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  font-size: 1.1rem;
+  transition: 0.25s;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.12);
+}
+
+.icon-btn.active {
+  background: #FEA93D !important;
+  color: black !important;
+}
+
+/* TABLE */
 .stock-table {
   width: 90%;
-  margin: 1rem auto;
+  margin: 1.5rem auto;
   border-collapse: collapse;
-  font-size: 2rem;
+  font-size: 1.9rem;
 
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: white;
 }
 
 .stock-table th, .stock-table td {
@@ -39,7 +64,7 @@ header {
   text-align: center;
 }
 
-/* SOFTER COLOR TONES */
+/* SOFT COLORS */
 .high-stock {
   background-color: #4ECDC4;
   color: white;
@@ -58,13 +83,9 @@ header {
   font-weight: bold;
 }
 
-/* SKELETON LOADING */
-.skeleton-row td {
-  padding: 1.2rem;
-}
-
+/* SKELETON */
 .skeleton {
-  height: 30px;
+  height: 35px;
   background: linear-gradient(90deg, #dcdcdc 25%, #e9e9e9 50%, #dcdcdc 75%);
   background-size: 200% 100%;
   animation: skeleton 1.4s infinite;
@@ -76,27 +97,22 @@ header {
   100% { background-position: -200% 0; }
 }
 
-/* VIEW SWITCH BUTTON */
-#viewSwitch {
+/* FOOTER */
+#footer-info {
   text-align: center;
-  margin-top: 1rem;
+  color: #555;
+  font-size: 1.2rem;
+  padding-bottom: 2rem;
 }
 
-#viewSwitch button {
-  margin: 0 10px;
-  padding: 8px 18px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #006FA1;
-  color: white;
+#footer-info i {
+  margin-right: 6px;
 }
 
 /* DARK MODE */
 body.dark {
-  background-color: #1e1e1e;
-  color: #eee;
+  background-color: #1f1f1f;
+  color: #eaeaea;
 }
 
 body.dark header {
