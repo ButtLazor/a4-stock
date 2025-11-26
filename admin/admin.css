@@ -250,6 +250,22 @@ tbody td:nth-child(2) {
   width: 120px;
 }
 
+/* UOM dropdown */
+table select {
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+}
+
+table select:focus {
+  outline: none;
+  border-color: #006FA1;
+  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
+}
+
 
 /* ===============================
    RESPONSIVE
