@@ -4,6 +4,7 @@ const supabaseClient = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHNmdXlnZnd4YW9naGxwZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTAxMDYsImV4cCI6MjA3OTcyNjEwNn0.VDueoceN3jbgCOo1D6xp4i9tLMyHG247Y4nFdBv0QI8"
 );
 
+
 // Load all stock items
 async function loadStock() {
   const { data, error } = await supabaseClient
@@ -25,11 +26,19 @@ async function loadStock() {
 
     tr.innerHTML = `
       <td>${item.brand}</td>
-      <td>${item.uom ?? "-"}</td>
+
+      <td>
+        <select onchange="updateUOM(${item.id}, this.value)">
+          <option value="BOX" ${item.uom === "BOX" ? "selected" : ""}>BOX</option>
+          <option value="PCS" ${item.uom === "PCS" ? "selected" : ""}>PCS</option>
+        </select>
+      </td>
+
       <td>
         <input type="number" value="${item.quantity}"
           onchange="updateQty(${item.id}, this.value)">
       </td>
+
       <td>
         <button onclick="deleteItem(${item.id})" class="delete-btn">
           <i class="fa-solid fa-trash"></i>
@@ -41,6 +50,7 @@ async function loadStock() {
   });
 }
 
+
 // Update quantity
 async function updateQty(id, qty) {
   const { error } = await supabaseClient
@@ -50,6 +60,18 @@ async function updateQty(id, qty) {
 
   if (error) console.error("Update error:", error);
 }
+
+
+// Update UOM
+async function updateUOM(id, newUom) {
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .update({ uom: newUom })
+    .eq("id", id);
+
+  if (error) console.error("UOM update error:", error);
+}
+
 
 // Delete item
 async function deleteItem(id) {
@@ -65,9 +87,8 @@ async function deleteItem(id) {
   loadStock();
 }
 
-// ------------------------------
-// Modal Functions
-// ------------------------------
+
+// Modal functions
 function openAddModal() {
   document.getElementById("addModal").style.display = "flex";
 }
@@ -76,14 +97,15 @@ function closeAddModal() {
   document.getElementById("addModal").style.display = "none";
 }
 
-// Add new item (with UOM)
+
+// Add new item with UOM
 async function submitAddItem() {
   const name = document.getElementById("modalName").value.trim();
-  const uom = document.getElementById("modalUOM").value.trim() || "pcs";
+  const uom = document.getElementById("modalUOM").value.trim() || "PCS";
   const qty = parseInt(document.getElementById("modalQty").value);
 
   if (!name || isNaN(qty)) {
-    alert("Please enter valid item name, UOM & quantity");
+    alert("Please enter valid name & quantity");
     return;
   }
 
@@ -96,17 +118,14 @@ async function submitAddItem() {
     return;
   }
 
-  // Clear fields
   document.getElementById("modalName").value = "";
   document.getElementById("modalUOM").value = "";
   document.getElementById("modalQty").value = "";
 
-  // Close modal
   closeAddModal();
-
-  // Refresh table
   loadStock();
 }
 
-// Auto-load stock on startup
+
+// Auto-load stock
 loadStock();
