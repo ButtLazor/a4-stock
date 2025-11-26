@@ -11,8 +11,11 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Main CSS (cache-busted) -->
+  <!-- Main Styles -->
   <link rel="stylesheet" href="styles.css?v=3">
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -45,7 +48,7 @@
   </thead>
 
   <tbody id="stockBody">
-    <!-- Skeleton while loading -->
+    <!-- Skeleton Loading -->
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
     <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
@@ -60,7 +63,8 @@
 
 <!-- Sound File -->
 <audio id="dingSound" 
-  src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav" preload="auto">
+  src="https://cdn.jsdelivr.net/gh/ButtLazor/a4-stock@main/ding.wav"
+  preload="auto">
 </audio>
 
 <!-- Main Script -->
