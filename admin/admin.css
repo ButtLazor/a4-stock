@@ -1,3 +1,19 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  margin: 0;
+}
+
+header {
+  background: #006FA1;
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .dashboard {
   width: 90%;
   margin: 2rem auto;
@@ -8,7 +24,7 @@
 
 .card {
   flex: 1;
-  min-width: 350px;
+  min-width: 370px;
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
@@ -46,4 +62,21 @@
   padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+input[type="number"] {
+  width: 90px;
+  padding: 6px;
+  text-align: center;
 }
