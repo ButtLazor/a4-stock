@@ -28,19 +28,16 @@
 
 <div class="dashboard">
 
-  <!-- Add Item Button -->
-  <div class="card">
-    <h2><i class="fa-solid fa-plus"></i> Add Item</h2>
-
-    <button class="open-modal-btn" onclick="openAddModal()">
-      <i class="fa-solid fa-circle-plus"></i> Add New Item
-    </button>
-  </div>
-
-
   <!-- Update Stock -->
-  <div class="card">
-    <h2><i class="fa-solid fa-pen-to-square"></i> Update Stocks</h2>
+  <div class="card full-width">
+
+    <div class="card-header">
+      <h2><i class="fa-solid fa-pen-to-square"></i> Update Stocks</h2>
+
+      <button class="open-modal-btn small" onclick="openAddModal()">
+        <i class="fa-solid fa-circle-plus"></i> Add Item
+      </button>
+    </div>
 
     <table id="stockTable">
       <thead>
