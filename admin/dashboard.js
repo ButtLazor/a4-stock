@@ -25,7 +25,12 @@ async function loadStock() {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${item.brand}</td>
+      <td onclick="enableNameEdit(this, ${item.id})">
+        <span class="item-text">${item.brand}</span>
+        <input class="item-input" value="${item.brand}"
+          onblur="saveName(${item.id}, this.value)"
+          onkeydown="handleNameKey(event, ${item.id}, this)">
+      </td>
 
       <td>
         <select onchange="updateUOM(${item.id}, this.value)">
@@ -51,18 +56,47 @@ async function loadStock() {
 }
 
 
-// Update quantity
-async function updateQty(id, qty) {
+// ===============================
+// Editable Name Logic
+// ===============================
+function enableNameEdit(cell, id) {
+  const textSpan = cell.querySelector(".item-text");
+  const input = cell.querySelector(".item-input");
+
+  textSpan.style.display = "none";
+  input.style.display = "block";
+  input.focus();
+  input.select();
+}
+
+function handleNameKey(event, id, input) {
+  if (event.key === "Enter") {
+    saveName(id, input.value);
+    input.blur();
+  }
+}
+
+async function saveName(id, newName) {
+  newName = newName.trim();
+  if (newName === "") return;
+
   const { error } = await supabaseClient
     .from("stock_items")
-    .update({ quantity: qty })
+    .update({ brand: newName })
     .eq("id", id);
 
-  if (error) console.error("Update error:", error);
+  if (error) {
+    alert("Name update failed.");
+    console.error(error);
+  }
+
+  loadStock();
 }
 
 
+// ===============================
 // Update UOM
+// ===============================
 async function updateUOM(id, newUom) {
   const { error } = await supabaseClient
     .from("stock_items")
@@ -73,7 +107,22 @@ async function updateUOM(id, newUom) {
 }
 
 
+// ===============================
+// Update quantity
+// ===============================
+async function updateQty(id, qty) {
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .update({ quantity: qty })
+    .eq("id", id);
+
+  if (error) console.error("Update error:", error);
+}
+
+
+// ===============================
 // Delete item
+// ===============================
 async function deleteItem(id) {
   if (!confirm("Delete this item?")) return;
 
@@ -88,7 +137,9 @@ async function deleteItem(id) {
 }
 
 
-// Modal functions
+// ===============================
+// Modal Functions
+// ===============================
 function openAddModal() {
   document.getElementById("addModal").style.display = "flex";
 }
@@ -98,14 +149,14 @@ function closeAddModal() {
 }
 
 
-// Add new item with UOM
+// Add new item
 async function submitAddItem() {
   const name = document.getElementById("modalName").value.trim();
   const uom = document.getElementById("modalUOM").value.trim() || "PCS";
   const qty = parseInt(document.getElementById("modalQty").value);
 
   if (!name || isNaN(qty)) {
-    alert("Please enter valid name & quantity");
+    alert("Please enter valid item name & quantity");
     return;
   }
 
@@ -119,7 +170,7 @@ async function submitAddItem() {
   }
 
   document.getElementById("modalName").value = "";
-  document.getElementById("modalUOM").value = "";
+  document.getElementById("modalUOM").value = "PCS";
   document.getElementById("modalQty").value = "";
 
   closeAddModal();
@@ -127,5 +178,5 @@ async function submitAddItem() {
 }
 
 
-// Auto-load stock
+// Load on start
 loadStock();
