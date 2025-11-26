@@ -1,8 +1,10 @@
+// Initialize Supabase client
 const supabase = supabase.createClient(
-  "https://YOUR-PROJECT.supabase.co",
-  "YOUR_ANON_KEY"
+  "https://oypsfuygfwxaoghlpeaz.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHNmdXlnZnd4YW9naGxwZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTAxMDYsImV4cCI6MjA3OTcyNjEwNn0.VDueoceN3jbgCOo1D6xp4i9tLMyHG247Y4nFdBv0QI8"
 );
 
+// Load all stock items
 async function loadStock() {
   const { data, error } = await supabase
     .from("stock_items")
@@ -32,6 +34,7 @@ async function loadStock() {
   });
 }
 
+// Add new item
 async function addItem() {
   const name = document.getElementById("newName").value.trim();
   const qty = parseInt(document.getElementById("newQty").value);
@@ -46,14 +49,21 @@ async function addItem() {
   loadStock();
 }
 
+// Update quantity
 async function updateQty(id, qty) {
-  await supabase.from("stock_items").update({ quantity: qty }).eq("id", id);
+  await supabase
+    .from("stock_items")
+    .update({ quantity: qty })
+    .eq("id", id);
 }
 
+// Delete item
 async function deleteItem(id) {
   if (!confirm("Delete this item?")) return;
+
   await supabase.from("stock_items").delete().eq("id", id);
   loadStock();
 }
 
+// Auto-load stock
 loadStock();
