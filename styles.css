@@ -99,7 +99,7 @@ header h1{
 }
 /* Item name column — Bigger & clearer */
 .stock-table tbody tr td:first-child{
-  text-align: left;
+  text-align: middle;
   font-size: 5.35rem;     /* Increased size */
   font-weight: 600;       /* Slightly bold */
   color: var(--text);     /* Uses theme text color */
