@@ -97,9 +97,14 @@ header h1{
   vertical-align:middle;
   border-bottom:1px solid rgba(0,0,0,0.04);
 }
+/* Item name column — Bigger & clearer */
 .stock-table tbody tr td:first-child{
-  text-align:left;
+  text-align: left;
+  font-size: 1.35rem;     /* Increased size */
+  font-weight: 600;       /* Slightly bold */
+  color: var(--text);     /* Uses theme text color */
 }
+
 
 /* Quantity cell color blocks (strong contrast gradients) */
 .low-stock {
@@ -181,11 +186,4 @@ body.dark .stock-table thead th{ color:var(--text); }
   transition: 0.25s ease;
 }
 
-/* Item name column styling */
-.item-name {
-  font-size: 1.15rem;   /* Bigger text */
-  font-weight: 600;     /* Slightly bold */
-  color: #222;          /* Dark and readable */
-  padding: 10px 0;
-}
 
