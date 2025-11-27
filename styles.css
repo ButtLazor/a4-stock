@@ -91,34 +91,51 @@ header h1 {
   border-spacing: 0;
   overflow: hidden;
   border-radius: 16px;
+  table-layout: fixed; /* IMPORTANT FIX */
 }
 
 /* Table Header */
 .stock-table thead th {
   background: transparent;
   text-align: center;
-  font-size: 4rem;
+  font-size: 4.2rem;
   font-weight: 900;
   padding: 60px 20px;
   color: var(--text);
   border-bottom: 3px solid rgba(0,0,0,0.1);
+  width: 50%;
 }
 
 /* Table Body */
 .stock-table tbody tr td {
-  padding: 55px 30px;
-  font-size: 3.4rem;
+  padding: 65px 40px;
+  font-size: 3.8rem;
   vertical-align: middle;
   border-bottom: 3px solid rgba(0,0,0,0.06);
 }
 
-/* Item column */
+/* Item names */
 .stock-table tbody tr td:first-child {
-  text-align: left;
-  font-size: 3.6rem;
+  font-size: 4rem;
   font-weight: 900;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.3px;
   color: var(--text);
+  width: 50%; /* MORE SPACE for item names */
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Quantity blocks */
+.low-stock,
+.medium-stock,
+.high-stock,
+.out-of-stock {
+  font-size: 4rem;
+  font-weight: 900;
+  padding: 65px 0;
+  text-align: center;
+  letter-spacing: 1.3px;
+  border-radius: 12px;
+  color: #fff;
 }
 
 /* -------------------------------------- */
@@ -129,7 +146,7 @@ header h1 {
 .high-stock,
 .out-of-stock {
   font-size: 3.8rem;
-  font-weight: 900;
+  font-weight: 700;
   padding: 60px 0;
   text-align: center;
   letter-spacing: 1.3px;
