@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
   <!-- Main Styles -->
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=1">
 
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,7 +24,6 @@
   <h1><i class="fa-solid fa-boxes-stacked"></i> Live Stock Update (VMG)</h1>
 
   <div class="header-right">
-
     <!-- Admin Dashboard Button -->
     <button onclick="location.href='admin/admin.html'" class="icon-btn" title="Admin Dashboard">
       <i class="fa-solid fa-gear"></i>
@@ -39,25 +38,26 @@
     <button id="soundToggle" class="icon-btn" title="Sound Alert Toggle">
       <i class="fa-solid fa-bell"></i>
     </button>
-
   </div>
 </header>
 
 <!-- STOCK TABLE -->
-<table class="stock-table" id="stockTable">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Quantity</th>
-    </tr>
-  </thead>
+<div class="stock-container">
+  <table class="stock-table" role="table" aria-label="Stock table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
 
-  <tbody id="stockBody">
-    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-    <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-  </tbody>
-</table>
+    <tbody id="stockBody">
+      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
+    </tbody>
+  </table>
+</div>
 
 <!-- FOOTER -->
 <div id="footer-info">
@@ -68,9 +68,7 @@
 <audio id="dingSound" src="assets/ding.wav" preload="auto"></audio>
 
 <!-- Main Script -->
-<script src="script.v6.js?v=6"></script>
+<script src="script.v6.js?v=1"></script>
 
 </body>
 </html>
-
-
