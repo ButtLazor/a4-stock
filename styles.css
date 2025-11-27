@@ -172,3 +172,8 @@ header h1{
 body.dark header{ background:#0b3f57 }
 body.dark .stock-container{ box-shadow:none; border:1px solid rgba(255,255,255,0.03); }
 body.dark .stock-table thead th{ color:var(--text); }
+
+#soundToggle i {
+  transition: 0.25s ease;
+}
+
