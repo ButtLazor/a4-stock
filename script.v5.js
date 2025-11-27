@@ -85,13 +85,13 @@ function updateTable(data) {
       qtyTd.textContent = "OUT OF STOCK";
       qtyTd.className = "out-of-stock";
     } else if (item.quantity < 200) {
-      qtyTd.textContent = item.quantity;
+      qtyTd.textContent = `${item.quantity} ${item.uom}`;
       qtyTd.className = "low-stock";
     } else if (item.quantity <= 700) {
-      qtyTd.textContent = item.quantity;
+      qtyTd.textContent = `${item.quantity} ${item.uom}`;
       qtyTd.className = "medium-stock";
     } else {
-      qtyTd.textContent = item.quantity;
+      qtyTd.textContent = `${item.quantity} ${item.uom}`;
       qtyTd.className = "high-stock";
     }
 
@@ -140,17 +140,17 @@ function enableSound() {
 // =======================================================
 // COUNTDOWN
 // =======================================================
-let countdown = fetchInterval / 1000;
+//let countdown = fetchInterval / 1000;
 
-function updateCountdown() {
-  countdown--;
-  if (countdown < 0) countdown = fetchInterval / 1000;
+//function updateCountdown() {
+//countdown--;
+//if (countdown < 0) countdown = fetchInterval / 1000;
 
-  document.getElementById("countdown").innerHTML =
-    `<i class="fa-solid fa-rotate-right"></i> Next update in: 0:${countdown
-      .toString()
-      .padStart(2, "0")}`;
-}
+//document.getElementById("countdown").innerHTML =
+  //  `<i class="fa-solid fa-rotate-right"></i> Next update in: 0:${countdown
+ //     .toString()
+//      .padStart(2, "0")}`;
+//}
 
 
 // =======================================================
