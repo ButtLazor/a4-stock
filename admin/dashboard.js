@@ -6,127 +6,197 @@ const supabaseClient = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHNmdXlnZnd4YW9naGxwZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTAxMDYsImV4cCI6MjA3OTcyNjEwNn0.VDueoceN3jbgCOo1D6xp4i9tLMyHG247Y4nFdBv0QI8"
 );
 
-let lastStableData = [];
-let soundEnabled = false;
-
-const fetchInterval = 3000; // 3 seconds
-const dingSound = document.getElementById("dingSound");
-
 
 // =======================================================
-// Fetch Stock Items
+// Load Stock Items
 // =======================================================
-async function fetchStockData() {
+async function loadStock() {
   const { data, error } = await supabaseClient
     .from("stock_items")
-    .select("Item, uom, quantity")
+    .select("*")
     .order("Item", { ascending: true });
 
   if (error) {
-    console.error("Supabase error:", error);
-    return null;
+    console.error("Load error:", error);
+    document.getElementById("stockBody").innerHTML =
+      "<tr><td colspan='4'>Error loading data</td></tr>";
+    return;
   }
 
-  return data;
+  updateTable(data);
 }
 
 
 // =======================================================
-// Compare Data
-// =======================================================
-function isSameData(a, b) {
-  if (a.length !== b.length) return false;
-
-  return a.every((item, i) =>
-    item.Item === b[i].Item &&
-    item.quantity === b[i].quantity &&
-    item.uom === b[i].uom
-  );
-}
-
-
-// =======================================================
-// Update Table UI
+// Render Table
 // =======================================================
 function updateTable(data) {
-  const table = document.getElementById("stockBody");
-  table.innerHTML = "";
+  const body = document.getElementById("stockBody");
+  body.innerHTML = "";
 
-  data.forEach((item, i) => {
+  data.forEach(item => {
     const tr = document.createElement("tr");
 
-    // ITEM NAME
-    const itemTd = document.createElement("td");
-    itemTd.textContent = item.Item;
-    itemTd.style.fontSize = "2rem";
+    tr.innerHTML = `
+      <!-- ITEM NAME (inline editable) -->
+      <td onclick="enableNameEdit(this, ${item.id})">
+        <span class="item-text">${item.Item}</span>
+        <input class="item-input" 
+               value="${item.Item}"
+               onblur="saveName(${item.id}, this.value)"
+               onkeydown="handleNameKey(event, ${item.id}, this)">
+      </td>
 
-    // QUANTITY + UOM
-    const qtyTd = document.createElement("td");
-    qtyTd.style.fontSize = "2rem";
+      <!-- UOM DROPDOWN -->
+      <td>
+        <select onchange="updateUOM(${item.id}, this.value)">
+          <option value="PCS" ${item.uom?.toUpperCase() === "PCS" ? "selected" : ""}>PCS</option>
+          <option value="BOX" ${item.uom?.toUpperCase() === "BOX" ? "selected" : ""}>BOX</option>
+        </select>
+      </td>
 
-    const prev = lastStableData[i];
+      <!-- QUANTITY -->
+      <td>
+        <input type="number"
+               value="${item.quantity}"
+               onchange="updateQty(${item.id}, this.value)">
+      </td>
 
-    // Flash animation
-    if (prev && prev.quantity !== item.quantity) {
-      qtyTd.classList.add("flash");
-      setTimeout(() => qtyTd.classList.remove("flash"), 1800);
-    }
+      <!-- DELETE -->
+      <td>
+        <button onclick="deleteItem(${item.id})" class="delete-btn">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
+    `;
 
-    // Color logic + text formatting
-    if (item.quantity === 0) {
-      qtyTd.textContent = "OUT OF STOCK";
-      qtyTd.className = "out-of-stock";
-    } else if (item.quantity < 200) {
-      qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "low-stock";
-    } else if (item.quantity <= 700) {
-      qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "medium-stock";
-    } else {
-      qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "high-stock";
-    }
-
-    tr.appendChild(itemTd);
-    tr.appendChild(qtyTd);
-    table.appendChild(tr);
+    body.appendChild(tr);
   });
-
-  document.getElementById("lastUpdated").textContent =
-    "Last updated: " + new Date().toLocaleTimeString();
 }
 
 
 // =======================================================
-// Refresh Loop
+// Inline Editing — Item Name
 // =======================================================
-async function refreshStock() {
-  const data = await fetchStockData();
-  if (!data) return;
+function enableNameEdit(cell, id) {
+  const text = cell.querySelector(".item-text");
+  const input = cell.querySelector(".item-input");
 
-  if (!isSameData(data, lastStableData)) {
-    updateTable(data);
-    if (soundEnabled) dingSound.play().catch(() => {});
-    lastStableData = data;
+  text.style.display = "none";
+  input.style.display = "block";
+  input.focus();
+  input.select();
+}
+
+function handleNameKey(event, id, input) {
+  if (event.key === "Enter") {
+    saveName(id, input.value);
+    input.blur();
   }
 }
 
+async function saveName(id, newName) {
+  if (!newName.trim()) return;
 
-// =======================================================
-// Sound Toggle
-// =======================================================
-const soundBtn = document.getElementById("soundToggle");
-if (soundBtn) {
-  soundBtn.addEventListener("click", () => {
-    soundEnabled = !soundEnabled;
-    soundBtn.classList.toggle("active");
-    if (soundEnabled) dingSound.play().catch(() => {});
-  });
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .update({ Item: newName.trim() })
+    .eq("id", id);
+
+  if (error) console.error("Name update error:", error);
+
+  loadStock();
 }
 
 
 // =======================================================
-// Start Loop
+// Update UOM
 // =======================================================
-refreshStock();
-setInterval(refreshStock, fetchInterval);
+async function updateUOM(id, newUom) {
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .update({ uom: newUom.toUpperCase() })
+    .eq("id", id);
+
+  if (error) console.error("UOM update error:", error);
+}
+
+
+// =======================================================
+// Update Quantity
+// =======================================================
+async function updateQty(id, qty) {
+  qty = Number(qty);
+  if (isNaN(qty)) return;
+
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .update({ quantity: qty })
+    .eq("id", id);
+
+  if (error) console.error("Quantity update error:", error);
+}
+
+
+// =======================================================
+// Delete Item
+// =======================================================
+async function deleteItem(id) {
+  if (!confirm("Delete this item?")) return;
+
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .delete()
+    .eq("id", id);
+
+  if (error) console.error("Delete error:", error);
+
+  loadStock();
+}
+
+
+// =======================================================
+// Add Item (Modal)
+// =======================================================
+function openAddModal() {
+  document.getElementById("addModal").style.display = "flex";
+}
+
+function closeAddModal() {
+  document.getElementById("addModal").style.display = "none";
+}
+
+async function submitAddItem() {
+  const name = document.getElementById("modalName").value.trim();
+  const uom = document.getElementById("modalUOM").value.trim().toUpperCase();
+  const qty = Number(document.getElementById("modalQty").value);
+
+  if (!name || isNaN(qty)) {
+    alert("Please enter valid item name & quantity.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("stock_items")
+    .insert([{ Item: name, uom: uom, quantity: qty }]);
+
+  if (error) {
+    console.error("Add error:", error);
+    alert("Failed to add item.");
+    return;
+  }
+
+  // Clear modal
+  document.getElementById("modalName").value = "";
+  document.getElementById("modalUOM").value = "PCS";
+  document.getElementById("modalQty").value = "";
+
+  closeAddModal();
+  loadStock();
+}
+
+
+// =======================================================
+// INITIAL LOAD
+// =======================================================
+loadStock();
