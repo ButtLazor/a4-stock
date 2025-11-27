@@ -6,42 +6,42 @@ const supabaseClient = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHNmdXlnZnd4YW9naGxwZWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTAxMDYsImV4cCI6MjA3OTcyNjEwNn0.VDueoceN3jbgCOo1D6xp4i9tLMyHG247Y4nFdBv0QI8"
 );
 
-
 // =======================================================
 // GLOBALS
 // =======================================================
 let lastStableData = [];
 let soundEnabled = false;
 const fetchInterval = 3000;
-
 const dingSound = document.getElementById("dingSound");
 
+// safety for missing audio element
+if (!dingSound) console.warn("dingSound element not found");
 
 // =======================================================
-// AUDIO UNLOCK
+// UNLOCK AUDIO (first user click)
 // =======================================================
 document.addEventListener("click", () => {
-  dingSound.play().catch(() => {});
+  if (dingSound) dingSound.play().catch(()=>{});
 }, { once: true });
 
+// =======================================================
+// DARK MODE TOGGLE
+// =======================================================
+const darkBtn = document.getElementById("darkToggle");
+if (darkBtn) {
+  darkBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    const icon = darkBtn.querySelector("i");
+    if (document.body.classList.contains("dark")) {
+      icon.classList.replace("fa-moon", "fa-sun");
+    } else {
+      icon.classList.replace("fa-sun", "fa-moon");
+    }
+  });
+}
 
 // =======================================================
-// DARK MODE
-// =======================================================
-document.getElementById("darkToggle").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-
-  const icon = document.querySelector("#darkToggle i");
-  if (document.body.classList.contains("dark")) {
-    icon.classList.replace("fa-moon", "fa-sun");
-  } else {
-    icon.classList.replace("fa-sun", "fa-moon");
-  }
-});
-
-
-// =======================================================
-// FETCH STOCK
+// FETCH STOCK DATA
 // =======================================================
 async function fetchStockData() {
   const { data, error } = await supabaseClient
@@ -50,57 +50,59 @@ async function fetchStockData() {
     .order("Item", { ascending: true });
 
   if (error) {
-    console.error(error);
+    console.error("Supabase error:", error);
     return null;
   }
-
   return data;
 }
 
-
 // =======================================================
-// DETECT QUANTITY CHANGE
+// CHECK IF QUANTITY CHANGED (by item name)
 // =======================================================
 function hasQuantityChanged(newData, oldData) {
+  if (!oldData || oldData.length === 0) return true; // first run -> render
   return newData.some(n => {
     const p = oldData.find(x => x.Item === n.Item);
-    return p && p.quantity !== n.quantity;
+    if (!p) return true; // new item added
+    return p.quantity !== n.quantity;
   });
 }
 
-
 // =======================================================
-// UPDATE TABLE
+// UPDATE TABLE UI
 // =======================================================
 function updateTable(data) {
   const tbody = document.getElementById("stockBody");
+  if (!tbody) return console.error("stockBody element not found");
   tbody.innerHTML = "";
 
   data.forEach(item => {
     const tr = document.createElement("tr");
 
-    // Item
+    // Item cell
     const tdItem = document.createElement("td");
     tdItem.textContent = item.Item;
-    tdItem.style.fontSize = "2rem";
+    tdItem.style.fontSize = "1.15rem";
 
-    // Quantity + UOM
+    // Quantity + UOM cell
     const tdQty = document.createElement("td");
-    tdQty.style.fontSize = "2rem";
+    tdQty.style.fontSize = "1.15rem";
 
     const prev = lastStableData.find(x => x.Item === item.Item);
 
+    // flash on quantity change
     if (prev && prev.quantity !== item.quantity) {
       tdQty.classList.add("flash");
-      setTimeout(() => tdQty.classList.remove("flash"), 1800);
+      setTimeout(() => tdQty.classList.remove("flash"), 1400);
     }
 
+    // content + classes
     if (item.quantity === 0) {
       tdQty.textContent = "OUT OF STOCK";
       tdQty.className = "out-of-stock";
     } else {
-      tdQty.textContent = `${item.quantity} ${item.uom}`;
-      tdQty.className = 
+      tdQty.textContent = `${item.quantity} ${item.uom || ''}`.trim();
+      tdQty.className =
         item.quantity < 200 ? "low-stock" :
         item.quantity <= 700 ? "medium-stock" :
         "high-stock";
@@ -111,37 +113,42 @@ function updateTable(data) {
     tbody.appendChild(tr);
   });
 
-  document.getElementById("lastUpdated").textContent =
-    "Last updated: " + new Date().toLocaleTimeString();
+  const last = document.getElementById("lastUpdated");
+  if (last) last.textContent = "Last updated: " + new Date().toLocaleTimeString();
 }
-
 
 // =======================================================
 // REFRESH LOOP
 // =======================================================
 async function refreshStock() {
   const data = await fetchStockData();
-  console.log("DATA:", data);
   if (!data) return;
+
+  // Debug line (safe to keep)
+  // console.log("DATA:", data);
 
   if (hasQuantityChanged(data, lastStableData)) {
     updateTable(data);
-    if (soundEnabled) dingSound.play().catch(()=>{});
-  }
 
+    if (soundEnabled && dingSound) {
+      dingSound.play().catch(()=>{});
+    }
+  }
   lastStableData = data;
 }
-
 
 // =======================================================
 // SOUND TOGGLE
 // =======================================================
-document.getElementById("soundToggle").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  document.getElementById("soundToggle").classList.toggle("active");
-  dingSound.play().catch(()=>{});
-});
-
+const soundBtn = document.getElementById("soundToggle");
+if (soundBtn) {
+  soundBtn.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.classList.toggle("active");
+    // try to play once to ensure browser unlock
+    if (dingSound) dingSound.play().catch(()=>{});
+  });
+}
 
 // =======================================================
 // START LOOP
