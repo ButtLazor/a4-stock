@@ -101,39 +101,43 @@ header h1{
   text-align:left;
 }
 
-/* Quantity cell color blocks (soft tones) */
+/* Quantity cell color blocks (strong contrast gradients) */
 .low-stock {
-  background: linear-gradient(90deg, rgba(246,212,116,0.9), rgba(244,206,90,0.95));
-  color: #111;
-  font-weight:700;
-  text-align:center;
-  border-radius:6px;
-  padding:12px;
+  background: linear-gradient(90deg, rgba(244,67,54,0.85), rgba(229,56,43,0.9)); /* Red */
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
 }
+
 .medium-stock {
-  background: linear-gradient(90deg, rgba(240,181,107,0.95), rgba(243,166,80,0.95));
-  color:#111;
-  font-weight:700;
-  text-align:center;
-  border-radius:6px;
-  padding:12px;
+  background: linear-gradient(90deg, rgba(255,152,0,0.9), rgba(255,138,0,0.95)); /* Orange */
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
 }
+
 .high-stock {
-  background: linear-gradient(90deg, rgba(150,214,182,0.95), rgba(136,201,160,0.95));
-  color:#fff;
-  font-weight:700;
-  text-align:center;
-  border-radius:6px;
-  padding:12px;
+  background: linear-gradient(90deg, rgba(76,175,80,0.9), rgba(67,160,71,0.95)); /* Green */
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
 }
-.out-of-stock{
-  background: linear-gradient(90deg, rgba(231,133,133,0.95), rgba(217,95,95,0.95));
-  color:white;
-  font-weight:700;
-  text-align:center;
-  border-radius:6px;
-  padding:12px;
+
+.out-of-stock {
+  background: linear-gradient(90deg, rgba(198,40,40,0.9), rgba(183,28,28,0.95)); /* Dark red */
+  color: white;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  padding: 12px;
 }
+
 
 /* flash animation */
 .flash{
