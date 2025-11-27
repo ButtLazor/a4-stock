@@ -121,6 +121,7 @@ function updateTable(data) {
 // =======================================================
 async function refreshStock() {
   const data = await fetchStockData();
+  console.log("DATA:", data);
   if (!data) return;
 
   if (hasQuantityChanged(data, lastStableData)) {
