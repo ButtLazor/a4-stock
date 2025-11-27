@@ -145,14 +145,25 @@ const soundBtn = document.getElementById("soundToggle");
 if (soundBtn) {
   soundBtn.addEventListener("click", () => {
     soundEnabled = !soundEnabled;
+
+    // toggle button active color
     soundBtn.classList.toggle("active", soundEnabled);
 
-    // slight click sound for feedback
+    // toggle icon
+    const icon = soundBtn.querySelector("i");
+    if (soundEnabled) {
+      icon.classList.replace("fa-bell-slash", "fa-bell");
+    } else {
+      icon.classList.replace("fa-bell", "fa-bell-slash");
+    }
+
+    // play test sound when enabling
     if (soundEnabled && dingSound) {
       dingSound.play().catch(()=>{});
     }
   });
 }
+
 
 
 // =======================================================
