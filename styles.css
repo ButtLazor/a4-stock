@@ -100,9 +100,9 @@ header h1{
 /* Item name column — Bigger & clearer */
 .stock-table tbody tr td:first-child{
   text-align: middle;
-  font-size: 2rem;     /* Increased size */
-  font-weight: 600;        /* Slightly bold */
-  letter-spacing: 0.3px;
+  font-size: 2.2rem;     /* Increased size */
+  font-weight: 800;        /* Slightly bold */
+  letter-spacing: 0.5px;
   color: var(--text);     /* Uses theme text color */
 }
 
@@ -111,37 +111,41 @@ header h1{
 .low-stock {
   background: linear-gradient(90deg, rgba(244,67,54,0.85), rgba(229,56,43,0.9)); /* Red */
   color: #fff;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 12px;
+  padding: 16px 0;
 }
 
 .medium-stock {
   background: linear-gradient(90deg, rgba(255,152,0,0.9), rgba(255,138,0,0.95)); /* Orange */
   color: #fff;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 12px;
+  padding: 16px 0;
 }
 
 .high-stock {
   background: linear-gradient(90deg, rgba(76,175,80,0.9), rgba(67,160,71,0.95)); /* Green */
   color: #fff;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 12px;
+  padding: 16px 0;
 }
 
 .out-of-stock {
   background: linear-gradient(90deg, rgba(198,40,40,0.9), rgba(183,28,28,0.95)); /* Dark red */
   color: white;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 12px;
+  padding: 16px 0;
 }
 
 
