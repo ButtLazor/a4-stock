@@ -83,8 +83,8 @@ header h1{
 .stock-table thead th{
   background:transparent;
   text-align:center;
-  padding:22px 12px;
-  font-size:1.9rem;
+  padding:26px 12px;
+  font-size:2.4rem;
   font-weight:700;
   color:var(--text);
 }
@@ -100,10 +100,11 @@ header h1{
 /* Item name column — Bigger & clearer */
 .stock-table tbody tr td:first-child{
   text-align: middle;
-  font-size: 2.2rem;     /* Increased size */
+  font-size: 2.6rem;     /* Increased size */
   font-weight: 800;        /* Slightly bold */
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   color: var(--text);     /* Uses theme text color */
+  padding: 26px 18px;
 }
 
 
@@ -111,21 +112,23 @@ header h1{
 .low-stock {
   background: linear-gradient(90deg, rgba(244,67,54,0.85), rgba(229,56,43,0.9)); /* Red */
   color: #fff;
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 16px 0;
+  padding: 26px 0;   
+  letter-spacing: 0.5px;
 }
 
 .medium-stock {
   background: linear-gradient(90deg, rgba(255,152,0,0.9), rgba(255,138,0,0.95)); /* Orange */
   color: #fff;
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 800;
   text-align: center;
   border-radius: 6px;
-  padding: 16px 0;
+  padding: 26px 0;   
+  letter-spacing: 0.5px;
 }
 
 .high-stock {
