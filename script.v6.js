@@ -141,14 +141,19 @@ async function refreshStock() {
 // SOUND TOGGLE
 // =======================================================
 const soundBtn = document.getElementById("soundToggle");
+
 if (soundBtn) {
   soundBtn.addEventListener("click", () => {
     soundEnabled = !soundEnabled;
-    soundBtn.classList.toggle("active");
-    // try to play once to ensure browser unlock
-    if (dingSound) dingSound.play().catch(()=>{});
+    soundBtn.classList.toggle("active", soundEnabled);
+
+    // slight click sound for feedback
+    if (soundEnabled && dingSound) {
+      dingSound.play().catch(()=>{});
+    }
   });
 }
+
 
 // =======================================================
 // START LOOP
