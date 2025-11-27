@@ -181,3 +181,11 @@ body.dark .stock-table thead th{ color:var(--text); }
   transition: 0.25s ease;
 }
 
+/* Item name column styling */
+.item-name {
+  font-size: 1.15rem;   /* Bigger text */
+  font-weight: 600;     /* Slightly bold */
+  color: #222;          /* Dark and readable */
+  padding: 10px 0;
+}
+
