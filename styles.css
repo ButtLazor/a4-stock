@@ -84,7 +84,7 @@ header h1{
   background:transparent;
   text-align:center;
   padding:22px 12px;
-  font-size:1.25rem;
+  font-size:1.55rem;
   font-weight:700;
   color:var(--text);
 }
@@ -93,14 +93,14 @@ header h1{
 }
 .stock-table tbody tr td{
   padding:18px 18px;
-  font-size:1.2rem;
+  font-size:1.45rem;
   vertical-align:middle;
   border-bottom:1px solid rgba(0,0,0,0.04);
 }
 /* Item name column — Bigger & clearer */
 .stock-table tbody tr td:first-child{
   text-align: middle;
-  font-size: 1.55rem;     /* Increased size */
+  font-size: 1.65rem;     /* Increased size */
   font-weight: 600;        /* Slightly bold */
   letter-spacing: 0.3px;
   color: var(--text);     /* Uses theme text color */
