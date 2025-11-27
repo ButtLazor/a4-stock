@@ -19,7 +19,6 @@ body.dark {
   --text: #e6eef0;
 }
 
-/* Defaults */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 
@@ -37,7 +36,7 @@ body {
 header {
   background: var(--accent);
   color: white;
-  padding: 22px 32px;
+  padding: 26px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -45,43 +44,41 @@ header {
 
 header h1 {
   margin: 0;
-  font-size: 2.4rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-right {
+  font-size: 3rem;
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .icon-btn {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.14);
   border: 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-radius: 10px;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   cursor: pointer;
   color: white;
   transition: 0.2s;
 }
 
-.icon-btn:hover {
-  transform: translateY(-1px);
-}
+.icon-btn:hover { transform: translateY(-1px); }
 
 /* -------------------------------------- */
-/* TABLE CONTAINER */
+/* MAIN TABLE CONTAINER */
 /* -------------------------------------- */
 .stock-container {
   width: 90%;
-  max-width: 1350px;
-  margin: 40px auto;
+  max-width: 1700px;
+  margin: 50px auto;
   background: var(--card);
   border-radius: var(--radius);
-  padding: 22px 26px 36px;
+  padding: 40px 50px;
   box-shadow: 0 6px 24px rgba(11,20,30,0.08);
 }
 
@@ -93,68 +90,64 @@ header h1 {
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
-/* Header */
+/* Table Header */
 .stock-table thead th {
   background: transparent;
-  font-size: 2.8rem;
-  font-weight: 900;
   text-align: center;
-  padding: 36px 12px;
+  font-size: 4rem;
+  font-weight: 900;
+  padding: 60px 20px;
   color: var(--text);
-  border-bottom: 2px solid rgba(0,0,0,0.08);
+  border-bottom: 3px solid rgba(0,0,0,0.1);
 }
 
-/* Row Cells */
+/* Table Body */
 .stock-table tbody tr td {
-  padding: 34px 24px;
-  font-size: 2.4rem;
-  border-bottom: 2px solid rgba(0,0,0,0.06);
+  padding: 55px 30px;
+  font-size: 3.4rem;
   vertical-align: middle;
+  border-bottom: 3px solid rgba(0,0,0,0.06);
 }
 
-/* Item Names */
+/* Item column */
 .stock-table tbody tr td:first-child {
-  font-size: 2.7rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--text);
   text-align: left;
+  font-size: 3.6rem;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: var(--text);
 }
 
 /* -------------------------------------- */
-/* QUANTITY BLOCKS */
+/* QUANTITY COLOR BLOCKS */
 /* -------------------------------------- */
 .low-stock,
 .medium-stock,
 .high-stock,
 .out-of-stock {
-  font-size: 3rem;
+  font-size: 3.8rem;
   font-weight: 900;
-  letter-spacing: 1.2px;
-  padding: 36px 0;
+  padding: 60px 0;
   text-align: center;
-  border-radius: 8px;
+  letter-spacing: 1.3px;
+  border-radius: 10px;
   color: #fff;
 }
 
-/* Colors */
 .low-stock {
-  background: linear-gradient(90deg, rgba(244,67,54,0.9), rgba(229,56,43,0.95));
+  background: linear-gradient(90deg, rgba(244,67,54,0.9), rgba(229,56,43,1));
 }
-
 .medium-stock {
-  background: linear-gradient(90deg, rgba(255,152,0,0.95), rgba(255,138,0,1));
+  background: linear-gradient(90deg, rgba(255,152,0,1), rgba(255,138,0,1));
 }
-
 .high-stock {
-  background: linear-gradient(90deg, rgba(76,175,80,0.95), rgba(67,160,71,1));
+  background: linear-gradient(90deg, rgba(76,175,80,1), rgba(67,160,71,1));
 }
-
 .out-of-stock {
-  background: linear-gradient(90deg, rgba(198,40,40,0.95), rgba(183,28,28,1));
+  background: linear-gradient(90deg, rgba(198,40,40,1), rgba(183,28,28,1));
 }
 
 /* -------------------------------------- */
@@ -166,7 +159,7 @@ header h1 {
 
 @keyframes flashQty {
   0% { box-shadow: 0 0 0 rgba(255,255,255,0); }
-  50% { box-shadow: 0 0 18px rgba(255,255,255,0.12); }
+  50% { box-shadow: 0 0 24px rgba(255,255,255,0.15); }
   100% { box-shadow: 0 0 0 rgba(255,255,255,0); }
 }
 
@@ -174,8 +167,8 @@ header h1 {
 /* SKELETON LOADERS */
 /* -------------------------------------- */
 .skeleton {
-  height: 78px;
-  border-radius: 8px;
+  height: 100px;
+  border-radius: 10px;
   background: linear-gradient(90deg, #eeeeee 0%, #e6e6e6 50%, #eeeeee 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
@@ -191,29 +184,14 @@ header h1 {
 /* -------------------------------------- */
 #footer-info {
   text-align: center;
-  margin-top: 22px;
-  font-size: 1.5rem;
+  margin-top: 30px;
+  font-size: 1.7rem;
   color: var(--muted);
 }
 
 /* -------------------------------------- */
-/* MOBILE */
+/* DARK MODE TWEAKS */
 /* -------------------------------------- */
-@media (max-width: 720px) {
-  .stock-container { width: 95%; padding: 10px; }
-
-  .stock-table thead th {
-    font-size: 1.6rem;
-    padding: 16px;
-  }
-
-  .stock-table tbody tr td {
-    font-size: 1.4rem;
-    padding: 14px;
-  }
-}
-
-/* Dark Mode header & container */
 body.dark header {
   background: #0b3f57;
 }
@@ -223,7 +201,24 @@ body.dark .stock-container {
   box-shadow: none;
 }
 
-/* Sound toggle icon transition */
+/* Sound icon smooth animation */
 #soundToggle i {
   transition: 0.25s ease;
+}
+
+/* -------------------------------------- */
+/* MOBILE (Auto smaller) */
+/* -------------------------------------- */
+@media (max-width: 720px) {
+  .stock-container { width: 95%; padding: 20px; }
+
+  .stock-table thead th {
+    font-size: 1.7rem;
+    padding: 20px;
+  }
+
+  .stock-table tbody tr td {
+    font-size: 1.6rem;
+    padding: 16px;
+  }
 }
