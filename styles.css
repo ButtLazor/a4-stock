@@ -116,7 +116,7 @@ header h1 {
 /* ITEM NAMES — BIGGER */
 .stock-table tbody tr td:first-child {
   text-align: left;
-  font-size: 2.8rem !important; /* Increased */
+  font-size: 2.9rem !important; /* Increased */
   font-weight: 600 !important;
   letter-spacing: 1px;
   color: var(--text);
