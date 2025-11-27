@@ -116,8 +116,8 @@ header h1 {
 /* ITEM NAMES — BIGGER */
 .stock-table tbody tr td:first-child {
   text-align: left;
-  font-size: 2.2rem !important; /* Increased */
-  font-weight: 800 !important;
+  font-size: 2.0rem !important; /* Increased */
+  font-weight: 700 !important;
   letter-spacing: 1px;
   color: var(--text);
 }
@@ -127,8 +127,8 @@ header h1 {
 .medium-stock,
 .high-stock,
 .out-of-stock {
-  font-size: 2.4rem !important; /* Increased */
-  font-weight: 900 !important;
+  font-size: 2.8rem !important; /* Increased */
+  font-weight: 800 !important;
   padding: 34px 0;
   text-align: center;
   border-radius: 8px;
