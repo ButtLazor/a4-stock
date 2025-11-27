@@ -86,7 +86,7 @@ header h1 {
 /* TABLE */
 /* -------------------------------------- */
 .stock-table {
-  width: 90%;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
