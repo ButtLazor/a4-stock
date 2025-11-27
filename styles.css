@@ -98,8 +98,8 @@ header h1 {
 .stock-table thead th {
   background: transparent;
   text-align: center;
-  font-size: 2.6rem;
-  font-weight: 900;
+  font-size: 2.3rem;
+  font-weight: 800;
   padding: 32px 12px;
   color: var(--text);
   border-bottom: 2px solid rgba(0,0,0,0.08);
@@ -116,7 +116,7 @@ header h1 {
 /* ITEM NAMES — BIGGER */
 .stock-table tbody tr td:first-child {
   text-align: left;
-  font-size: 2.9rem !important; /* Increased */
+  font-size: 2.5rem !important; /* Increased */
   font-weight: 700 !important;
   letter-spacing: 1px;
   color: var(--text);
@@ -127,7 +127,7 @@ header h1 {
 .medium-stock,
 .high-stock,
 .out-of-stock {
-  font-size: 2.8rem !important; /* Increased */
+  font-size: 2.4rem !important; /* Increased */
   font-weight: 700 !important;
   padding: 34px 0;
   text-align: center;
