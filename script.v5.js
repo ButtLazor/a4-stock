@@ -36,21 +36,19 @@ async function fetchStockData() {
 
 
 // =======================================================
-// COMPARE DATA
+// CHECK IF ANY QUANTITY CHANGED (by matching Item names)
 // =======================================================
-function isSameData(a, b) {
-  if (a.length !== b.length) return false;
-
-  return a.every((item, i) =>
-    item.Item === b[i].Item &&
-    item.quantity === b[i].quantity &&
-    item.uom === b[i].uom
-  );
+function hasQuantityChanged(newData, oldData) {
+  return newData.some(newItem => {
+    const oldItem = oldData.find(d => d.Item === newItem.Item);
+    if (!oldItem) return false;
+    return oldItem.quantity !== newItem.quantity;
+  });
 }
 
 
 // =======================================================
-// UPDATE TABLE
+// UPDATE TABLE UI
 // =======================================================
 function updateTable(data) {
   const table = document.getElementById("stockBody");
@@ -59,22 +57,18 @@ function updateTable(data) {
   data.forEach((item, index) => {
     const tr = document.createElement("tr");
 
-    // =========================
     // ITEM NAME
-    // =========================
     const itemTd = document.createElement("td");
     itemTd.textContent = item.Item;
     itemTd.style.fontSize = "2rem";
 
-    // =========================
-    // QUANTITY DISPLAY
-    // =========================
+    // QUANTITY + UOM
     const qtyTd = document.createElement("td");
     qtyTd.style.fontSize = "2rem";
 
-    const prev = lastStableData[index];
+    const prev = lastStableData.find(i => i.Item === item.Item);
 
-    // Flash animation on change
+    // Flash animation for changes
     if (prev && prev.quantity !== item.quantity) {
       qtyTd.classList.add("flash");
       setTimeout(() => qtyTd.classList.remove("flash"), 1800);
@@ -97,7 +91,6 @@ function updateTable(data) {
 
     tr.appendChild(itemTd);
     tr.appendChild(qtyTd);
-
     table.appendChild(tr);
   });
 
@@ -113,15 +106,15 @@ async function refreshStock() {
   const data = await fetchStockData();
   if (!data) return;
 
-  if (!isSameData(data, lastStableData)) {
+  if (hasQuantityChanged(data, lastStableData)) {
     updateTable(data);
 
     if (soundEnabled) {
       dingSound.play().catch(() => {});
     }
-
-    lastStableData = data;
   }
+
+  lastStableData = data;
 }
 
 
@@ -138,24 +131,7 @@ function enableSound() {
 
 
 // =======================================================
-// COUNTDOWN
-// =======================================================
-//let countdown = fetchInterval / 1000;
-
-//function updateCountdown() {
-//countdown--;
-//if (countdown < 0) countdown = fetchInterval / 1000;
-
-//document.getElementById("countdown").innerHTML =
-  //  `<i class="fa-solid fa-rotate-right"></i> Next update in: 0:${countdown
- //     .toString()
-//      .padStart(2, "0")}`;
-//}
-
-
-// =======================================================
-// START INTERVALS
+// START INTERVALS (NO COUNTDOWN)
 // =======================================================
 refreshStock();
 setInterval(refreshStock, fetchInterval);
-setInterval(updateCountdown, 1000);
