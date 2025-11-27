@@ -18,6 +18,14 @@ const dingSound = document.getElementById("dingSound");
 
 
 // =======================================================
+// FORCE AUDIO UNLOCK (Chrome & Mobile)
+// =======================================================
+document.addEventListener("click", () => {
+  dingSound.play().catch(() => {});
+}, { once: true });
+
+
+// =======================================================
 // FETCH STOCK DATA
 // =======================================================
 async function fetchStockData() {
@@ -36,11 +44,11 @@ async function fetchStockData() {
 
 
 // =======================================================
-// CHECK IF ANY QUANTITY CHANGED (by matching Item names)
+// CHECK IF QUANTITY CHANGED
 // =======================================================
 function hasQuantityChanged(newData, oldData) {
   return newData.some(newItem => {
-    const oldItem = oldData.find(d => d.Item === newItem.Item);
+    const oldItem = oldData.find(x => x.Item === newItem.Item);
     if (!oldItem) return false;
     return oldItem.quantity !== newItem.quantity;
   });
@@ -54,10 +62,10 @@ function updateTable(data) {
   const table = document.getElementById("stockBody");
   table.innerHTML = "";
 
-  data.forEach((item, index) => {
+  data.forEach(item => {
     const tr = document.createElement("tr");
 
-    // ITEM NAME
+    // ITEM
     const itemTd = document.createElement("td");
     itemTd.textContent = item.Item;
     itemTd.style.fontSize = "2rem";
@@ -66,9 +74,9 @@ function updateTable(data) {
     const qtyTd = document.createElement("td");
     qtyTd.style.fontSize = "2rem";
 
-    const prev = lastStableData.find(i => i.Item === item.Item);
+    const prev = lastStableData.find(x => x.Item === item.Item);
 
-    // Flash animation for changes
+    // Flash animation
     if (prev && prev.quantity !== item.quantity) {
       qtyTd.classList.add("flash");
       setTimeout(() => qtyTd.classList.remove("flash"), 1800);
@@ -78,15 +86,12 @@ function updateTable(data) {
     if (item.quantity === 0) {
       qtyTd.textContent = "OUT OF STOCK";
       qtyTd.className = "out-of-stock";
-    } else if (item.quantity < 200) {
-      qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "low-stock";
-    } else if (item.quantity <= 700) {
-      qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "medium-stock";
     } else {
       qtyTd.textContent = `${item.quantity} ${item.uom}`;
-      qtyTd.className = "high-stock";
+      qtyTd.className =
+        item.quantity < 200 ? "low-stock" :
+        item.quantity <= 700 ? "medium-stock" :
+        "high-stock";
     }
 
     tr.appendChild(itemTd);
@@ -126,12 +131,13 @@ function enableSound() {
   const btn = document.getElementById("soundToggle");
   btn.classList.toggle("active");
 
-  if (soundEnabled) dingSound.play().catch(() => {});
+  // Unlock audio
+  dingSound.play().catch(() => {});
 }
 
 
 // =======================================================
-// START INTERVALS (NO COUNTDOWN)
+// START LOOP
 // =======================================================
 refreshStock();
 setInterval(refreshStock, fetchInterval);
