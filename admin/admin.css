@@ -154,31 +154,55 @@ tbody td {
   padding: 12px;
   font-size: 15px;
   vertical-align: middle;
+  position: relative;
 }
 
-/* Editable Name */
+/* Editable Item Name */
 .item-text {
   display: inline-block;
   cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: 0.15s ease;
+}
+
+.item-text:hover {
+  background: #e8f4fc;
+  color: #006FA1;
 }
 
 .item-input {
   display: none;
-  width: 90%;
-  padding: 6px;
+  width: 95%;
+  padding: 8px 10px;
   font-size: 15px;
-  border: 1px solid #ccc;
+  border: 1px solid #9ca3af;
   border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 0 0 2px transparent;
+  transition: 0.15s ease;
+}
+
+.item-input:focus {
+  outline: none;
+  border-color: #006FA1;
+  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
 }
 
 /* Quantity input */
 tbody input[type="number"] {
-  width: 100px;
+  width: 110px;
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   text-align: center;
   font-size: 15px;
+}
+
+tbody input[type="number"]:focus {
+  outline: none;
+  border-color: #006FA1;
+  box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
 }
 
 /* UOM dropdown */
@@ -197,7 +221,7 @@ table select:focus {
   box-shadow: 0 0 0 3px rgba(0,111,161,0.2);
 }
 
-/* Delete button */
+/* Delete Button */
 .delete-btn {
   background: #d9534f;
   color: white;
