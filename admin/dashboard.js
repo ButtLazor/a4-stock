@@ -39,15 +39,17 @@ function updateTable(data) {
 
     tr.innerHTML = `
       <!-- ITEM NAME (inline editable) -->
-      <td onclick="enableNameEdit(this, ${item.id})">
-        <span class="item-text">${item.Item}</span>
-        <input class="item-input" 
+      <td>
+        <span class="item-text" onclick="startNameEdit(this)">${item.Item}</span>
+
+        <input class="item-input"
                value="${item.Item}"
-               onblur="saveName(${item.id}, this.value)"
-               onkeydown="handleNameKey(event, ${item.id}, this)">
+               data-id="${item.id}"
+               onblur="finishNameEdit(this)"
+               onkeydown="nameInputKey(event, this)">
       </td>
 
-      <!-- UOM DROPDOWN -->
+      <!-- UOM -->
       <td>
         <select onchange="updateUOM(${item.id}, this.value)">
           <option value="PCS" ${item.uom?.toUpperCase() === "PCS" ? "selected" : ""}>PCS</option>
@@ -55,7 +57,7 @@ function updateTable(data) {
         </select>
       </td>
 
-      <!-- QUANTITY -->
+      <!-- Quantity -->
       <td>
         <input type="number"
                value="${item.quantity}"
@@ -78,34 +80,45 @@ function updateTable(data) {
 // =======================================================
 // Inline Editing — Item Name
 // =======================================================
-function enableNameEdit(cell, id) {
-  const text = cell.querySelector(".item-text");
+function startNameEdit(spanEl) {
+  const cell = spanEl.parentElement;
   const input = cell.querySelector(".item-input");
 
-  text.style.display = "none";
+  spanEl.style.display = "none";
   input.style.display = "block";
   input.focus();
   input.select();
 }
 
-function handleNameKey(event, id, input) {
+function nameInputKey(event, input) {
   if (event.key === "Enter") {
-    saveName(id, input.value);
-    input.blur();
+    finishNameEdit(input);
   }
 }
 
-async function saveName(id, newName) {
-  if (!newName.trim()) return;
+async function finishNameEdit(input) {
+  const id = input.dataset.id;
+  const newName = input.value.trim();
 
-  const { error } = await supabaseClient
-    .from("stock_items")
-    .update({ Item: newName.trim() })
-    .eq("id", id);
+  const span = input.parentElement.querySelector(".item-text");
 
-  if (error) console.error("Name update error:", error);
+  if (!newName) {
+    input.value = span.textContent; // revert
+  } else {
+    const { error } = await supabaseClient
+      .from("stock_items")
+      .update({ Item: newName })
+      .eq("id", id);
 
-  loadStock();
+    if (error) {
+      console.error("Name update error:", error);
+    } else {
+      span.textContent = newName;
+    }
+  }
+
+  input.style.display = "none";
+  span.style.display = "inline-block";
 }
 
 
@@ -186,7 +199,7 @@ async function submitAddItem() {
     return;
   }
 
-  // Clear modal
+  // Clear + close modal
   document.getElementById("modalName").value = "";
   document.getElementById("modalUOM").value = "PCS";
   document.getElementById("modalQty").value = "";
