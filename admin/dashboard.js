@@ -53,6 +53,8 @@ function updateTable(data) {
       <td>
         <select onchange="updateUOM(${item.id}, this.value)">
           <option value="PCS" ${item.uom?.toUpperCase() === "PCS" ? "selected" : ""}>PCS</option>
+          <option value="BUNDLE" ${item.uom?.toUpperCase() === "BUNDLE" ? "selected" : ""}>BUNDLE</option>
+          <option value="REAM" ${item.uom?.toUpperCase() === "REAM" ? "selected" : ""}>REAM</option>
           <option value="BOX" ${item.uom?.toUpperCase() === "BOX" ? "selected" : ""}>BOX</option>
           <option value="ROLL" ${item.uom?.toUpperCase() === "ROLL" ? "selected" : ""}>ROLL</option>
         </select>
