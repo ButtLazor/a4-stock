@@ -1,94 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>VMG Stock Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <!-- Dashboard Styles -->
-  <link rel="stylesheet" href="admin.css">
-</head>
-
-<body>
-
-<header>
-  <h1><i class="fa-solid fa-warehouse"></i> Stock Dashboard (VMG)</h1>
-
-  <div class="header-nav">
-    <button onclick="location.href='../index.html'" class="header-btn">
-      <i class="fa-solid fa-arrow-left"></i> Back to Viewer
-    </button>
-  </div>
-</header>
-
-
-<div class="dashboard">
-
-  <!-- Update Stock -->
-  <div class="card full-width">
-
-    <div class="card-header">
-      <h2><i class="fa-solid fa-pen-to-square"></i> Update Stocks</h2>
-
-      <button class="open-modal-btn small" onclick="openAddModal()">
-        <i class="fa-solid fa-circle-plus"></i> Add Item
-      </button>
-    </div>
-
-    <table id="stockTable">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>UOM</th>
-          <th>Quantity</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody id="stockBody">
-        <tr><td colspan="4">Loading…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-
-
-<!-- Add Item Modal -->
-<div id="addModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeAddModal()">&times;</span>
-
-    <h3>Add New Item</h3>
-
-    <input id="modalName" type="text" placeholder="Item Name">
-
-    <select id="modalUOM">
-      <option value="PCS">PCS</option>
-      <option value="BUNDLE">BUNDLE</option>
-      <option value="REAM">REAM</option>
-      <option value="BOX">BOX</option>
-      <option value="ROLL">ROLL</option>
-    </select>
-
-    <input id="modalQty" type="number" placeholder="Quantity">
-
-    <button class="submit-modal-btn" onclick="submitAddItem()">
-      <i class="fa-solid fa-plus"></i> Add Item
-    </button>
-  </div>
-</div>
-
-
-<!-- Supabase Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Dashboard Logic -->
-<script src="dashboard.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101d33" />
+    <meta name="description" content="Manage VMG stock items, quantities and units." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Manage stock · VMG</title>
+    <script type="module" src="/src/admin.ts"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript><p>Please enable JavaScript to manage stock.</p></noscript>
+  </body>
 </html>

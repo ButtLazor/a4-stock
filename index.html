@@ -1,75 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live Stock Update (VMG)</title>
-
-  <!-- Favicon (Box Icon) -->
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/679/679720.png">
-
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
-  <!-- Main Styles -->
-  <link rel="stylesheet" href="styles.css?v=1">
-
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-
-<body>
-
-<header>
-  <h1><i class="fa-solid fa-boxes-stacked"></i> Live Stock Update (VMG)</h1>
-
-  <div class="header-right">
-    <!-- Admin Dashboard Button -->
-    <button onclick="location.href='admin/admin.html'" class="icon-btn" title="Admin Dashboard">
-      <i class="fa-solid fa-gear"></i>
-    </button>
-
-    <!-- Dark Mode Toggle -->
-    <button id="darkToggle" class="icon-btn" title="Toggle Dark Mode">
-      <i class="fa-solid fa-moon"></i>
-    </button>
-
-    <!-- Sound Toggle -->
-    <button id="soundToggle" class="icon-btn" title="Sound Alert Toggle">
-      <i class="fa-solid fa-bell-slash"></i>
-    </button>
-  </div>
-</header>
-
-<!-- STOCK TABLE -->
-<div class="stock-container">
-  <table class="stock-table" role="table" aria-label="Stock table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Quantity</th>
-      </tr>
-    </thead>
-
-    <tbody id="stockBody">
-      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-      <tr><td class="skeleton"></td><td class="skeleton"></td></tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- FOOTER -->
-<div id="footer-info">
-  <div id="lastUpdated"><i class="fa-regular fa-clock"></i> Last updated: --</div>
-</div>
-
-<!-- Notification Sound (LOCAL FILE) -->
-<audio id="dingSound" src="assets/ding.wav" preload="auto"></audio>
-
-<!-- Main Script -->
-<script src="script.v6.js?v=1"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101d33" />
+    <meta name="description" content="VMG live stock availability and inventory overview." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Stock overview · VMG</title>
+    <script type="module" src="/src/viewer.ts"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript><p>Please enable JavaScript to view live stock.</p></noscript>
+  </body>
 </html>
-
