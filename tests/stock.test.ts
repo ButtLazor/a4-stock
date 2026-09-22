@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeHtml, filterStock, parseQuantity, quantityChanged, stockChanged, stockCounts, stockStatus } from '../src/stock.ts';
+import { escapeHtml, filterStock, parseGuideLimit, parseQuantity, quantityChanged, sortStockItems, stockChanged, stockCounts, stockStatus, swapDisplayOrder, validateStockGuide } from '../src/stock.ts';
 import type { StockItem } from '../src/types.ts';
 
 const item: StockItem = { id: 1, Item: 'Paper One A4', uom: 'BOX', quantity: 701, is_pinned: false, display_order: 0, low_threshold: 200, high_threshold: 700 };
@@ -47,4 +47,20 @@ test('zero is valid; blank, negative, fractional and unsafe quantities are rejec
 
 test('item names cannot inject HTML or break attribute values', () => {
   assert.equal(escapeHtml('<img src=x onerror="bad()"> & \'stock\''), '&lt;img src=x onerror=&quot;bad()&quot;&gt; &amp; &#39;stock&#39;');
+});
+
+test('each item can use its own stock guide', () => {
+  assert.equal(stockStatus(25, 10, 20).key, 'healthy');
+  assert.equal(stockStatus(15, 10, 20).key, 'watch');
+  assert.equal(stockStatus(9, 10, 20).key, 'low');
+  assert.equal(parseGuideLimit('0', 'Low-stock limit'), 0);
+  assert.throws(() => validateStockGuide(50, 20));
+});
+
+test('pinned items sort first and display order can be swapped', () => {
+  const first = { ...item, id: 1, Item: 'First', display_order: 10 };
+  const second = { ...item, id: 2, Item: 'Second', display_order: 20 };
+  const pinned = { ...item, id: 3, Item: 'Pinned', is_pinned: true, display_order: 30 };
+  assert.deepEqual(sortStockItems([second, pinned, first]).map(entry => entry.id), [3, 1, 2]);
+  assert.deepEqual(swapDisplayOrder(first, second), [{ id: 1, display_order: 20 }, { id: 2, display_order: 10 }]);
 });
