@@ -23,8 +23,8 @@ import type { ItemId, StockFilter, StockInput, StockItem, StockPatch } from './t
 
 const units = ['PCS', 'BUNDLE', 'REAM', 'BOX', 'ROLL'];
 let toastSequence = 0;
-type EditableField = 'quantity' | 'uom' | 'low_threshold' | 'high_threshold';
-type ItemDetails = Pick<StockInput, 'Item' | 'uom' | 'quantity' | 'low_threshold' | 'high_threshold'>;
+type EditableField = 'quantity' | 'uom';
+type ItemDetails = Pick<StockInput, 'Item' | 'uom' | 'quantity'>;
 
 function formatUpdatedTime(date: Date | null): string {
   if (!date) return 'Waiting for the first update';
@@ -64,32 +64,38 @@ type StockRowProps = {
   onSaveField: (id: ItemId, field: EditableField, value: string) => Promise<boolean>;
   onEdit: (item: StockItem) => void;
   onDelete: (item: StockItem) => void;
+  onOpenGuide: (item: StockItem) => void;
   onTogglePin: (item: StockItem) => void;
   onMove: (item: StockItem, direction: -1 | 1) => void;
 };
 
-function StockRow({ item, canMoveUp, canMoveDown, saving, onSaveField, onEdit, onDelete, onTogglePin, onMove }: StockRowProps) {
+function StockRow({ item, canMoveUp, canMoveDown, saving, onSaveField, onEdit, onDelete, onOpenGuide, onTogglePin, onMove }: StockRowProps) {
   const [uom, setUom] = useState(item.uom ?? '');
   const [quantity, setQuantity] = useState(String(item.quantity ?? ''));
-  const [low, setLow] = useState(String(item.low_threshold));
-  const [high, setHigh] = useState(String(item.high_threshold));
   const id = String(item.id);
   const availableUnits = [...new Set([...units, item.uom ?? ''].filter(Boolean))];
 
   useEffect(() => setUom(item.uom ?? ''), [item.uom]);
   useEffect(() => setQuantity(String(item.quantity ?? '')), [item.quantity]);
-  useEffect(() => setLow(String(item.low_threshold)), [item.low_threshold]);
-  useEffect(() => setHigh(String(item.high_threshold)), [item.high_threshold]);
 
   const save = async (field: EditableField, value: string) => {
     const success = await onSaveField(item.id, field, value);
     if (!success) {
       if (field === 'uom') setUom(item.uom ?? '');
       if (field === 'quantity') setQuantity(String(item.quantity ?? ''));
-      if (field === 'low_threshold') setLow(String(item.low_threshold));
-      if (field === 'high_threshold') setHigh(String(item.high_threshold));
     }
   };
+
+  const adjustQuantity = (amount: -1 | 1) => {
+    try {
+      const nextQuantity = Math.max(0, parseQuantity(quantity) + amount);
+      setQuantity(String(nextQuantity));
+      void save('quantity', String(nextQuantity));
+    } catch {
+      void save('quantity', quantity);
+    }
+  };
+
   const blurOnEnter = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') event.currentTarget.blur();
   };
@@ -121,16 +127,14 @@ function StockRow({ item, canMoveUp, canMoveDown, saving, onSaveField, onEdit, o
       </td>
       <td className={cx('quantity-cell')}>
         <label className={cx('mobile-field-label')} htmlFor={`quantity-${id}`}>Quantity</label>
-        <input className={cx('table-input')} id={`quantity-${id}`} type="number" value={quantity} min="0" step="1" inputMode="numeric" aria-label={`Quantity for ${item.Item}`} disabled={saving} onChange={event => setQuantity(event.target.value)} onBlur={() => void save('quantity', quantity)} onKeyDown={blurOnEnter} />
-      </td>
-      <td className={cx('guide-cell')}>
-        <div className={cx('guide-fields')}>
-          <label htmlFor={`low-${id}`}><span>Low below</span><input className={cx('table-input', 'guide-input')} id={`low-${id}`} type="number" value={low} min="0" step="1" inputMode="numeric" aria-label={`Low stock below for ${item.Item}`} disabled={saving} onChange={event => setLow(event.target.value)} onBlur={() => void save('low_threshold', low)} onKeyDown={blurOnEnter} /></label>
-          <label htmlFor={`high-${id}`}><span>Well above</span><input className={cx('table-input', 'guide-input')} id={`high-${id}`} type="number" value={high} min="0" step="1" inputMode="numeric" aria-label={`Well stocked above for ${item.Item}`} disabled={saving} onChange={event => setHigh(event.target.value)} onBlur={() => void save('high_threshold', high)} onKeyDown={blurOnEnter} /></label>
+        <div className={cx('quantity-stepper')}>
+          <button type="button" className={cx('quantity-step-button')} aria-label={`Decrease ${item.Item} quantity`} title="Decrease quantity" disabled={saving || Number(quantity) <= 0} onClick={() => adjustQuantity(-1)}><Icon name="Minus" /></button>
+          <input className={cx('table-input', 'quantity-step-input')} id={`quantity-${id}`} type="number" value={quantity} min="0" step="1" inputMode="numeric" aria-label={`Quantity for ${item.Item}`} disabled={saving} onChange={event => setQuantity(event.target.value)} onBlur={event => { if (!event.currentTarget.parentElement?.contains(event.relatedTarget as Node | null)) void save('quantity', quantity); }} onKeyDown={blurOnEnter} />
+          <button type="button" className={cx('quantity-step-button')} aria-label={`Increase ${item.Item} quantity`} title="Increase quantity" disabled={saving} onClick={() => adjustQuantity(1)}><Icon name="Plus" /></button>
         </div>
       </td>
       <td className={cx('row-status')}><span className={cx('mobile-field-label')}>Status</span><StatusBadge item={item} /></td>
-      <td className={cx('row-actions')}><button type="button" className={cx('icon-button', 'delete-button')} aria-label={`Delete ${item.Item}`} title="Delete item" disabled={saving} onClick={() => onDelete(item)}><Icon name="Trash2" /></button></td>
+      <td className={cx('row-actions')}><div className={cx('row-action-group')}><button type="button" className={cx('icon-button', 'guide-button')} aria-label={`Edit stock guide for ${item.Item}`} title="Edit stock guide" disabled={saving} onClick={() => onOpenGuide(item)}><Icon name="Settings" /></button><button type="button" className={cx('icon-button', 'delete-button')} aria-label={`Delete ${item.Item}`} title="Delete item" disabled={saving} onClick={() => onDelete(item)}><Icon name="Trash2" /></button></div></td>
     </tr>
   );
 }
@@ -173,8 +177,6 @@ function ItemDialog({ target, busy, onClose, onSave }: ItemDialogProps) {
   const [name, setName] = useState('');
   const [uom, setUom] = useState('PCS');
   const [quantity, setQuantity] = useState('');
-  const [low, setLow] = useState(String(DEFAULT_LOW_THRESHOLD));
-  const [high, setHigh] = useState(String(DEFAULT_HIGH_THRESHOLD));
   const [error, setError] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -183,8 +185,6 @@ function ItemDialog({ target, busy, onClose, onSave }: ItemDialogProps) {
     setName(target?.Item ?? '');
     setUom(target?.uom ?? 'PCS');
     setQuantity(target ? String(target.quantity ?? '') : '');
-    setLow(String(target?.low_threshold ?? DEFAULT_LOW_THRESHOLD));
-    setHigh(String(target?.high_threshold ?? DEFAULT_HIGH_THRESHOLD));
     setError('');
     requestAnimationFrame(() => nameRef.current?.focus());
   }, [open, target]);
@@ -199,11 +199,8 @@ function ItemDialog({ target, busy, onClose, onSave }: ItemDialogProps) {
     }
     try {
       const parsedQuantity = parseQuantity(quantity);
-      const lowThreshold = parseGuideLimit(low, 'Low-stock limit');
-      const highThreshold = parseGuideLimit(high, 'Well-stocked limit');
-      validateStockGuide(lowThreshold, highThreshold);
       setError('');
-      const saved = await onSave({ Item: itemName, uom, quantity: parsedQuantity, low_threshold: lowThreshold, high_threshold: highThreshold });
+      const saved = await onSave({ Item: itemName, uom, quantity: parsedQuantity });
       if (!saved) setError('The save could not be confirmed. Check your connection and refresh before trying again.');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Enter valid item details.');
@@ -218,9 +215,57 @@ function ItemDialog({ target, busy, onClose, onSave }: ItemDialogProps) {
         <div className={cx('form-error')} role="alert" hidden={!error}>{error}</div>
         <div className={cx('form-field')}><label htmlFor="itemName">Item name</label><input ref={nameRef} id="itemName" type="text" value={name} onChange={event => setName(event.target.value)} placeholder="e.g. Paper One A4" required maxLength={250} autoComplete="off" disabled={busy} /></div>
         <div className={cx('field-row')}><div className={cx('form-field')}><label htmlFor="itemUom">Unit of measure</label><select id="itemUom" value={uom} onChange={event => setUom(event.target.value)} disabled={busy}>{availableUnits.map(unit => <option value={unit} key={unit}>{unit}</option>)}</select></div><div className={cx('form-field')}><label htmlFor="itemQuantity">Quantity</label><input id="itemQuantity" type="number" value={quantity} onChange={event => setQuantity(event.target.value)} inputMode="numeric" min="0" step="1" placeholder="0" required disabled={busy} /></div></div>
-        <div className={cx('field-row')}><div className={cx('form-field')}><label htmlFor="itemLowThreshold">Low stock below</label><input id="itemLowThreshold" type="number" value={low} onChange={event => setLow(event.target.value)} inputMode="numeric" min="0" step="1" required disabled={busy} /></div><div className={cx('form-field')}><label htmlFor="itemHighThreshold">Well stocked above</label><input id="itemHighThreshold" type="number" value={high} onChange={event => setHigh(event.target.value)} inputMode="numeric" min="0" step="1" required disabled={busy} /></div></div>
-        <p className={cx('field-hint')}>Use 0 for out of stock. Quantities between the two guide values appear on the watch list.</p>
         <div className={cx('modal-actions')}><button type="button" className={cx('button')} disabled={busy} onClick={onClose}>Cancel</button><button type="submit" className={cx('button', 'button-primary')} disabled={busy}>{busy ? <Icon name="LoaderCircle" /> : <Icon name={target ? 'Check' : 'Plus'} />}{busy ? 'Saving…' : target ? 'Save changes' : 'Add item'}</button></div>
+      </form>
+    </dialog>
+  );
+}
+
+type GuideDialogProps = {
+  target: StockItem | undefined;
+  busy: boolean;
+  onClose: () => void;
+  onSave: (target: StockItem, low: number, high: number) => Promise<boolean>;
+};
+
+function GuideDialog({ target, busy, onClose, onSave }: GuideDialogProps) {
+  const dialogRef = useDialog(Boolean(target), onClose, busy);
+  const [low, setLow] = useState('');
+  const [high, setHigh] = useState('');
+  const [error, setError] = useState('');
+  const lowRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!target) return;
+    setLow(String(target.low_threshold));
+    setHigh(String(target.high_threshold));
+    setError('');
+    requestAnimationFrame(() => lowRef.current?.focus());
+  }, [target]);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!target) return;
+    try {
+      const lowThreshold = parseGuideLimit(low, 'Low-stock limit');
+      const highThreshold = parseGuideLimit(high, 'Well-stocked limit');
+      validateStockGuide(lowThreshold, highThreshold);
+      setError('');
+      const saved = await onSave(target, lowThreshold, highThreshold);
+      if (!saved) setError('The stock guide could not be confirmed. Check your connection and try again.');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Enter valid stock guide values.');
+    }
+  };
+
+  return (
+    <dialog ref={dialogRef} className={cx('modal')} aria-labelledby="guideModalTitle" aria-busy={busy}>
+      <form className={cx('modal-content')} onSubmit={event => void submit(event)}>
+        <div className={cx('modal-header')}><div><div className={cx('modal-title-icon')}><Icon name="Settings" /></div><h2 id="guideModalTitle">Stock guide</h2><p className={cx('modal-description')}>{target?.Item}</p></div><button type="button" className={cx('icon-button')} aria-label="Close stock guide" disabled={busy} onClick={onClose}><Icon name="X" /></button></div>
+        <div className={cx('form-error')} role="alert" hidden={!error}>{error}</div>
+        <div className={cx('field-row')}><div className={cx('form-field')}><label htmlFor="guideLowThreshold">Low stock below</label><input ref={lowRef} id="guideLowThreshold" type="number" value={low} onChange={event => setLow(event.target.value)} inputMode="numeric" min="0" step="1" required disabled={busy} /></div><div className={cx('form-field')}><label htmlFor="guideHighThreshold">Well stocked above</label><input id="guideHighThreshold" type="number" value={high} onChange={event => setHigh(event.target.value)} inputMode="numeric" min="0" step="1" required disabled={busy} /></div></div>
+        <p className={cx('field-hint')}>Quantities below the first value are low. Quantities above the second value are well stocked; everything between appears on the watch list.</p>
+        <div className={cx('modal-actions')}><button type="button" className={cx('button')} disabled={busy} onClick={onClose}>Cancel</button><button type="submit" className={cx('button', 'button-primary')} disabled={busy}>{busy ? <Icon name="LoaderCircle" /> : <Icon name="Check" />}{busy ? 'Saving…' : 'Save guide'}</button></div>
       </form>
     </dialog>
   );
@@ -251,6 +296,7 @@ function AdminApp() {
   const [pageError, setPageError] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [itemTarget, setItemTarget] = useState<StockItem | null | undefined>(undefined);
+  const [guideTarget, setGuideTarget] = useState<StockItem | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<StockItem | undefined>(undefined);
   const [deleteError, setDeleteError] = useState('');
   const [modalSaving, setModalSaving] = useState(false);
@@ -325,14 +371,7 @@ function AdminApp() {
     let patch: StockPatch;
     try {
       if (field === 'uom') patch = { uom: rawValue };
-      else if (field === 'quantity') patch = { quantity: parseQuantity(rawValue) };
-      else {
-        const value = parseGuideLimit(rawValue, field === 'low_threshold' ? 'Low-stock limit' : 'Well-stocked limit');
-        const low = field === 'low_threshold' ? value : current.low_threshold;
-        const high = field === 'high_threshold' ? value : current.high_threshold;
-        validateStockGuide(low, high);
-        patch = field === 'low_threshold' ? { low_threshold: value } : { high_threshold: value };
-      }
+      else patch = { quantity: parseQuantity(rawValue) };
     } catch (reason) {
       pushToast(reason instanceof Error ? reason.message : 'Enter a valid value.', true);
       return false;
@@ -345,13 +384,37 @@ function AdminApp() {
       setConnection({ state: 'live', label: 'Connected' });
       setPageError('');
       setLastUpdated(new Date());
-      pushToast(`${saved.Item}: ${field === 'quantity' ? 'quantity' : field === 'uom' ? 'unit' : 'stock guide'} saved.`);
+      pushToast(`${saved.Item}: ${field === 'quantity' ? 'quantity' : 'unit'} saved.`);
       return true;
     } catch {
       pushToast('Changes could not be confirmed. Refresh before retrying.', true);
       return false;
     } finally {
       markPending([idKey], false);
+    }
+  }, [markPending, pushToast, setItems]);
+
+  const saveGuide = useCallback(async (target: StockItem, lowThreshold: number, highThreshold: number): Promise<boolean> => {
+    const idKey = String(target.id);
+    if (pendingRef.current.has(idKey) || modalSavingRef.current) return false;
+    markPending([idKey], true);
+    modalSavingRef.current = true;
+    setModalSaving(true);
+    try {
+      const saved = await updateStock(target.id, { low_threshold: lowThreshold, high_threshold: highThreshold });
+      setItems(sortStockItems((itemsRef.current ?? []).map(item => String(item.id) === idKey ? saved : item)));
+      setConnection({ state: 'live', label: 'Connected' });
+      setPageError('');
+      setLastUpdated(new Date());
+      setGuideTarget(undefined);
+      pushToast(`${saved.Item}: stock guide saved.`);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      markPending([idKey], false);
+      modalSavingRef.current = false;
+      setModalSaving(false);
     }
   }, [markPending, pushToast, setItems]);
 
@@ -413,7 +476,13 @@ function AdminApp() {
     const current = itemTarget ?? undefined;
     const currentItems = itemsRef.current ?? [];
     const nextOrder = currentItems.length ? Math.max(...currentItems.map(item => item.display_order)) + 10 : 0;
-    const input: StockInput = { ...details, is_pinned: current?.is_pinned ?? false, display_order: current?.display_order ?? nextOrder };
+    const input: StockInput = {
+      ...details,
+      is_pinned: current?.is_pinned ?? false,
+      display_order: current?.display_order ?? nextOrder,
+      low_threshold: current?.low_threshold ?? DEFAULT_LOW_THRESHOLD,
+      high_threshold: current?.high_threshold ?? DEFAULT_HIGH_THRESHOLD,
+    };
     try {
       const saved = current ? await updateStock(current.id, input) : await addStock(input);
       const next = current ? currentItems.map(item => String(item.id) === String(saved.id) ? saved : item) : [...currentItems, saved];
@@ -469,7 +538,7 @@ function AdminApp() {
       <MetricCards items={items ?? []} filter={filter} onFilter={setFilter} />
       <div className={cx('status-message')} role="alert" hidden={!pageError}><Icon name="WifiOff" /><span>{pageError}</span></div>
       <section className={cx('inventory-panel')} aria-labelledby="inventoryTitle">
-        <div className={cx('panel-heading')}><div><div className={cx('panel-title')}><h2 id="inventoryTitle">Your inventory</h2><span className={cx('count-badge')}>{items === null ? 'Loading' : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}</span></div><p className={cx('panel-subtitle')}>Set the display order, quantities, units and stock guide for each item.</p></div><button type="button" className={cx('button', 'refresh-button', loading && 'is-loading')} disabled={loading || pending.size > 0} onClick={() => void loadStock(true)}><Icon name="RefreshCw" />Refresh</button></div>
+        <div className={cx('panel-heading')}><div><div className={cx('panel-title')}><h2 id="inventoryTitle">Your inventory</h2><span className={cx('count-badge')}>{items === null ? 'Loading' : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}</span></div><p className={cx('panel-subtitle')}>Set the display order, quantities and units. Use the gear for each item’s stock guide.</p></div><button type="button" className={cx('button', 'refresh-button', loading && 'is-loading')} disabled={loading || pending.size > 0} onClick={() => void loadStock(true)}><Icon name="RefreshCw" />Refresh</button></div>
         <div className={cx('toolbar')}>
           <div className={cx('filter-tabs')} role="group" aria-label="Filter by stock level">
             {([['all', 'All items'], ['watch', 'Watch list'], ['low', 'Low stock']] as Array<[StockFilter, string]>).map(([key, label]) => <button className={cx('filter-tab')} type="button" key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}
@@ -477,11 +546,11 @@ function AdminApp() {
           <div className={cx('search-field')}><Icon name="Search" /><label className={cx('sr-only')} htmlFor="search">Search stock items</label><input type="search" id="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search items…" autoComplete="off" /><button className={cx('clear-search')} type="button" title="Clear search" aria-label="Clear search" hidden={!search} onClick={() => setSearch('')}><Icon name="X" /></button></div>
         </div>
         {items === null && !pageError ? (
-          <table className={cx('stock-table', 'admin-table')} aria-label="Loading inventory" aria-busy="true"><tbody>{Array.from({ length: 3 }, (_, row) => <tr className={cx('skeleton-row')} aria-hidden="true" key={row}>{Array.from({ length: 7 }, (_, column) => <td key={column}><span className={cx('skeleton', column > 0 && 'short')} /></td>)}</tr>)}</tbody></table>
+          <table className={cx('stock-table', 'admin-table')} aria-label="Loading inventory" aria-busy="true"><tbody>{Array.from({ length: 3 }, (_, row) => <tr className={cx('skeleton-row')} aria-hidden="true" key={row}>{Array.from({ length: 6 }, (_, column) => <td key={column}><span className={cx('skeleton', column > 0 && 'short')} /></td>)}</tr>)}</tbody></table>
         ) : visibleItems.length ? (
           <table className={cx('stock-table', 'admin-table')} aria-label="Manage inventory" aria-busy={loading}>
-            <thead><tr><th scope="col">Item name</th><th scope="col">Arrangement</th><th scope="col">Unit</th><th scope="col">Quantity</th><th scope="col">Stock guide</th><th scope="col">Status</th><th scope="col"><span className={cx('sr-only')}>Actions</span></th></tr></thead>
-            <tbody>{visibleItems.map(item => { const state = movement(item); return <StockRow key={item.id} item={item} saving={pending.has(String(item.id))} {...state} onSaveField={saveField} onEdit={setItemTarget} onDelete={target => { setDeleteError(''); setDeleteTarget(target); }} onTogglePin={itemToPin => void togglePin(itemToPin)} onMove={(itemToMove, direction) => void moveItem(itemToMove, direction)} />; })}</tbody>
+            <thead><tr><th scope="col">Item name</th><th scope="col">Arrangement</th><th scope="col">Unit</th><th scope="col">Quantity</th><th scope="col">Status</th><th scope="col"><span className={cx('sr-only')}>Actions</span></th></tr></thead>
+            <tbody>{visibleItems.map(item => { const state = movement(item); return <StockRow key={item.id} item={item} saving={pending.has(String(item.id))} {...state} onSaveField={saveField} onEdit={setItemTarget} onOpenGuide={setGuideTarget} onDelete={target => { setDeleteError(''); setDeleteTarget(target); }} onTogglePin={itemToPin => void togglePin(itemToPin)} onMove={(itemToMove, direction) => void moveItem(itemToMove, direction)} />; })}</tbody>
           </table>
         ) : (
           <div className={cx('empty-state')}><Icon name="Search" /><h3>{items?.length ? 'No matching items' : pageError ? 'Inventory could not load' : 'Make room for your first item'}</h3><p>{items?.length ? 'Try another search or stock level.' : pageError ? 'Your existing items have not been changed.' : 'Add an item to start tracking your stock.'}</p><button type="button" className={cx('button')} onClick={items?.length ? resetFilters : pageError ? () => void loadStock(true) : () => setItemTarget(null)}>{items?.length ? 'Clear filters' : pageError ? 'Try again' : 'Add item'}</button></div>
@@ -490,6 +559,7 @@ function AdminApp() {
       </section>
       <footer className={cx('page-footer')}><span className={cx('timestamp')}><Icon name="Clock3" /><span>{formatUpdatedTime(lastUpdated)}</span></span><span>VMG · Inventory workspace</span></footer>
       <ItemDialog target={itemTarget} busy={modalSaving} onClose={() => { if (!modalSaving) setItemTarget(undefined); }} onSave={saveItem} />
+      <GuideDialog target={guideTarget} busy={modalSaving} onClose={() => { if (!modalSaving) setGuideTarget(undefined); }} onSave={saveGuide} />
       <DeleteDialog target={deleteTarget} busy={modalSaving} error={deleteError} onClose={() => { if (!modalSaving) setDeleteTarget(undefined); }} onConfirm={() => void confirmDelete()} />
     </AppShell>
   );
